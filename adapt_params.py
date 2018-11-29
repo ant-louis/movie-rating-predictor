@@ -11,10 +11,12 @@ import pandas as pd
 import numpy as np
 from scipy import sparse
 from sklearn.tree import DecisionTreeRegressor
-from sklearn.metrics import accuracy_score
+# from sklearn.metrics import accuracy_score
+from sklearn.metrics import mean_squared_error
+
 from sklearn.model_selection import train_test_split
 from sklearn.externals import joblib
-
+from matplotlib import pyplot as plt
 @contextmanager
 def measure_time(label):
     """
@@ -168,7 +170,6 @@ def make_submission(y_predict, user_movie_ids, file_name='submission',
 if __name__ == '__main__':
     prefix = 'Data/'
 
-    n_samples = 10000 #Number of samples to consider
     # ------------------------------- Learning ------------------------------- #
     # Load training data
     training_user_movie_pairs = load_from_csv(os.path.join(prefix,
@@ -193,11 +194,10 @@ if __name__ == '__main__':
     rating_matrix = build_rating_matrix(user_movie_rating_triplets)
     X_ls = create_learning_matrices(rating_matrix, X_train)
 
-
-    # Build the model
     y_ls = y_train
 
-    for maxdepth in range(1,60,5):
+    maxdepths = list(range(1,60,5))
+    for maxdepth in maxdepths:
         filename = "DTR_maxd_{}".format(maxdepth)
 
         #Skip if the model has already been trained at this depth
@@ -208,21 +208,69 @@ if __name__ == '__main__':
         model = DecisionTreeRegressor(max_depth = maxdepth)
         start = time.time()
         with measure_time('Training'):
-            print('Training...')
+            print('Training...with a max_depth of {}'.format(maxdepth))
             model.fit(X_ls, y_ls)
 
         #Save estimator to file so that we train once
         joblib.dump(model, "{}.pkl".format(filename)) 
 
+    #Unconstrained model
+    #Skip if the model has already been trained at this depth
+    if(os.path.isfile("DTR_None.pkl")):
+        print("Model with no depth constrained already trained. Import filename DTR_None.pkl")
+    else:
+        start = time.time()
+        with measure_time('Training'):
+            print('Training...with no max_depth')
+            model = DecisionTreeRegressor().fit(X_ls, y_ls)
+        #Save estimator to file so that we train once
+        joblib.dump(model, "DTR_None.pkl") 
 
-    # # and later you can load it
-    # clf = joblib.load('filename.pkl')
+    # Importing estimators from filename
+    models = []
+    for maxdepth in maxdepths:
+        filename = "DTR_maxd_{}.pkl".format(maxdepth)
+        print("Loading estimator {}".format(filename))
+        models.append(joblib.load(filename))
+
+    #Importing unconstrained model
+    print("Loading estimator DTR_None.pkl".format(filename))
+    models.append(joblib.load("DTR_None.pkl"))
+
+    # ------------------------------ Prediction ------------------------------ #
+
+
+    # Build the prediction matrix
+    user_movie_rating_triplets = np.hstack((X_test,
+                                            y_test.reshape((-1, 1))))
+    rating_matrix = build_rating_matrix(user_movie_rating_triplets)
+    X_ts = create_learning_matrices(rating_matrix, X_test)
+
+    y_ts = y_test
+
+    # Predict
+    accuracies = []
+    for model in models:
+        print("Predicting...")
+        y_pred = model.predict(X_ts)
+        accuracies.append(mean_squared_error(y_ts, y_pred))
+    
+    #Getindex for unconstrained depth
+    maxdepths.append(100)
+    #Plot accuracy for different max_depths
+    print(accuracies)
+    plt.plot(maxdepths,accuracies)
+    plt.xlabel("maxdepths")
+    plt.ylabel("mean_squared_error")
+    
+    plt.show()
+
+        
 
     # ------------------------------ Prediction ------------------------------ #
     # # Load test data
     # test_user_movie_pairs = load_from_csv(os.path.join(prefix, 'data_test.csv'))
 
-    # test_user_movie_pairs = test_user_movie_pairs[:n_samples,:]
     # # Build the prediction matrix
     # X_ts = create_learning_matrices(rating_matrix, test_user_movie_pairs)
 
