@@ -11,6 +11,8 @@ import pandas as pd
 import numpy as np
 from scipy import sparse
 from sklearn.tree import DecisionTreeRegressor
+from sklearn.neighbors import KNeighborsRegressor
+
 # from sklearn.metrics import accuracy_score
 from sklearn.metrics import mean_squared_error
 
@@ -167,7 +169,10 @@ def make_submission(y_predict, user_movie_ids, file_name='submission',
             handle.write(line)
     return file_name
 
-if __name__ == '__main__':
+
+
+
+def decisiontreemethod():
     prefix = 'Data/'
 
     # ------------------------------- Learning ------------------------------- #
@@ -198,10 +203,10 @@ if __name__ == '__main__':
 
     maxdepths = list(range(1,60,5))
     for maxdepth in maxdepths:
-        filename = "DTR_maxd_{}".format(maxdepth)
+        filename = "DTR_maxd_{}.pkl".format(maxdepth)
 
         #Skip if the model has already been trained at this depth
-        if(os.path.isfile("{}.pkl".format(filename))):
+        if(os.path.isfile(filename)):
             print("Model with depth {} already trained. Import filename {}".format(maxdepth, filename))
             continue
 
@@ -212,7 +217,7 @@ if __name__ == '__main__':
             model.fit(X_ls, y_ls)
 
         #Save estimator to file so that we train once
-        joblib.dump(model, "{}.pkl".format(filename)) 
+        joblib.dump(model, filename) 
 
     #Unconstrained model
     #Skip if the model has already been trained at this depth
@@ -237,34 +242,140 @@ if __name__ == '__main__':
     print("Loading estimator DTR_None.pkl".format(filename))
     models.append(joblib.load("DTR_None.pkl"))
 
-    # ------------------------------ Prediction ------------------------------ #
+    # ---------Prediction - Selecting best parameters---------------------------- #
 
 
     # Build the prediction matrix
     user_movie_rating_triplets = np.hstack((X_test,
                                             y_test.reshape((-1, 1))))
     rating_matrix = build_rating_matrix(user_movie_rating_triplets)
-    X_ts = create_learning_matrices(rating_matrix, X_test)
+    X_ts_matrix = create_learning_matrices(rating_matrix, X_test)
+
+    y_ts = y_test
+
+    # # Predict
+    # accuracies = []
+    # for model in models:
+    #     print("Predicting...")
+    #     y_pred = model.predict(X_ts_matrix)
+    #     accuracies.append(mean_squared_error(y_ts, y_pred))
+    
+    # #Getindex for unconstrained depth
+    # maxdepths.append(100)
+    # #Plot accuracy for different max_depths
+    # print(accuracies)
+    # plt.plot(maxdepths,accuracies)
+    # plt.xlabel("maxdepths")
+    # plt.ylabel("mean_squared_error")
+    
+    # plt.show()
+    # plt.savefig("MSE_DT.svg")
+
+    # ---------Submission: Running model on provided test_set---------------------------- #
+
+    #Load test data
+    test_user_movie_pairs = load_from_csv(os.path.join(prefix, 'data_test.csv'))
+    # Build the prediction matrix
+    X_ts = create_learning_matrices(rating_matrix, test_user_movie_pairs)
+    #Predict
+    print("Predicting...")
+    y_pred = models[0].predict(X_ts)
+
+    fname = make_submission(y_pred, test_user_movie_pairs, 'DTR_1')
+    print('Submission file "{}" successfully written'.format(fname))
+
+
+def knrmethod():
+    prefix = 'Data/'
+
+    # ------------------------------- Learning ------------------------------- #
+    # Load training data
+    training_user_movie_pairs = load_from_csv(os.path.join(prefix,
+                                                            'data_train.csv'))
+    training_labels = load_from_csv(os.path.join(prefix, 'output_train.csv'))
+
+    X_train, X_test, y_train, y_test = train_test_split(training_user_movie_pairs, training_labels, test_size=0.2, random_state=42)
+
+    user_movie_rating_triplets = np.hstack((X_train,
+                                            y_train.reshape((-1, 1))))
+
+    # Build the learning matrix
+    rating_matrix = build_rating_matrix(user_movie_rating_triplets)
+    X_ls = create_learning_matrices(rating_matrix, X_train)
+
+    y_ls = y_train
+
+    neighbors = list(range(1,60,5))
+    for neighbor in neighbors:
+        filename = "KNR_neigbors_{}.pkl".format(neighbor)
+
+        #Skip if the model has already been trained at this depth
+        if(os.path.isfile(filename)):
+            print("Model with depth {} already trained. Import filename {}".format(neighbor, filename))
+            continue
+
+        model = KNeighborsRegressor(n_neighbors = neighbor)
+        start = time.time()
+        with measure_time('Training'):
+            print('Training...with a n_neighbors of {}'.format(neighbor))
+            model.fit(X_ls, y_ls)
+
+        #Save estimator to file so that we train once
+        joblib.dump(model, filename) 
+
+    # Importing estimators from filename
+    models = []
+    for neighbor in neighbors:
+        filename = "KNR_neigbors_{}.pkl".format(neighbor)
+        print("Loading estimator {}".format(filename))
+        models.append(joblib.load(filename))
+
+    # ---------Prediction - Selecting best parameters---------------------------- #
+
+
+    # Build the prediction matrix
+    user_movie_rating_triplets = np.hstack((X_test,
+                                            y_test.reshape((-1, 1))))
+    rating_matrix = build_rating_matrix(user_movie_rating_triplets)
+    X_ts_matrix = create_learning_matrices(rating_matrix, X_test)
 
     y_ts = y_test
 
     # Predict
-    accuracies = []
-    for model in models:
-        print("Predicting...")
-        y_pred = model.predict(X_ts)
-        accuracies.append(mean_squared_error(y_ts, y_pred))
-    
-    #Getindex for unconstrained depth
-    maxdepths.append(100)
-    #Plot accuracy for different max_depths
-    print(accuracies)
-    plt.plot(maxdepths,accuracies)
-    plt.xlabel("maxdepths")
-    plt.ylabel("mean_squared_error")
-    
-    plt.show()
+    # accuracies = []
+    # for model in models:
+    #     print("Predicting...")
+    #     y_pred = model.predict(X_ts_matrix)
+    #     accuracies.append(mean_squared_error(y_ts, y_pred))
 
+    # #Plot accuracy for different max_depths
+    # print(accuracies)
+    # plt.plot(neighbors,accuracies)
+    # plt.xlabel("n_neighbors")
+    # plt.ylabel("mean_squared_error")
+    
+    # plt.show()
+    # plt.savefig("MSE_KNR.svg")
+
+    # ---------Submission: Running model on provided test_set---------------------------- #
+    
+    print("Predicting...")
+    # Load test data
+    test_user_movie_pairs = load_from_csv(os.path.join(prefix, 'data_test.csv'))
+    # Build the prediction matrix
+    X_ts = create_learning_matrices(rating_matrix, test_user_movie_pairs)
+    #Predict
+    y_pred = models[-1].predict(X_ts)
+
+    fname = make_submission(y_pred, test_user_movie_pairs, 'KNR_56')
+    print('Submission file "{}" successfully written'.format(fname))
+
+
+if __name__ == '__main__':
+   
+    decisiontreemethod() # Kaggle score of 1.27
+    
+    knrmethod() # Kaggle score of 2.56
         
 
     # ------------------------------ Prediction ------------------------------ #
