@@ -115,11 +115,16 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
     """
     # Feature for users
     rating_matrix = rating_matrix.tocsr()
+    # print(rating_matrix)
     user_features = rating_matrix[user_movie_pairs[:, 0]]
+    # print(user_features)
+
 
     # Features for movies
     rating_matrix = rating_matrix.tocsc()
     movie_features = rating_matrix[:, user_movie_pairs[:, 1]].transpose()
+    print("user_movie_pairs[:, 1]")
+    print(user_movie_pairs[:, 1])
 
     X = sparse.hstack((user_features, movie_features))
     return X.tocsr()
@@ -250,7 +255,7 @@ def decisiontreemethod():
                                             y_test.reshape((-1, 1))))
     rating_matrix = build_rating_matrix(user_movie_rating_triplets)
     X_ts_matrix = create_learning_matrices(rating_matrix, X_test)
-
+    
     y_ts = y_test
 
     # # Predict
@@ -373,9 +378,9 @@ def knrmethod():
 
 if __name__ == '__main__':
    
-    decisiontreemethod() # Kaggle score of 1.27
+    decisiontreemethod() # Kaggle error of 1.27
     
-    knrmethod() # Kaggle score of 2.56
+    # knrmethod() # Kaggle error of 2.56
         
 
     # ------------------------------ Prediction ------------------------------ #
