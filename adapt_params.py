@@ -12,6 +12,7 @@ from scipy import sparse
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.model_selection import cross_val_score
+from sklearn.ensemble import RandomForestRegressor
 
 # from sklearn.metrics import accuracy_score
 from sklearn.metrics import mean_squared_error
@@ -271,6 +272,8 @@ def decisiontreemethod():
     fname = make_submission(y_pred, X_test_user_movie_pairs, 'DTR_5')
     print('Submission file "{}" successfully written'.format(fname))
 
+    
+
 
 def knrmethod():
     prefix = 'Data/'
@@ -357,13 +360,87 @@ def knrmethod():
     fname = make_submission(y_pred, test_user_movie_pairs, 'KNR_56')
     print('Submission file "{}" successfully written'.format(fname))
 
+def randomforest():
+    prefix = 'Data/'
+
+    # ------------------------------- Learning ------------------------------- #
+    # Load training data
+    training_with_more_features = load_from_csv(os.path.join(prefix,
+                                                            'train_user_movie_merge.csv'))
+    training_labels = load_from_csv(os.path.join(prefix, 'output_train.csv'))
+
+    X_train, X_test, y_train, y_test = train_test_split(training_with_more_features, training_labels, test_size=0.2, random_state=42)
+
+    maxdepths = list(range(1,X_train.shape[1],1))
+    for maxdepth in maxdepths:
+        filename = "RandomForest_maxd_{}.pkl".format(maxdepth)
+
+        #Skip if the model has already been trained at this depth
+        if(os.path.isfile(filename)):
+            print("RandomforestModel with max_d {} already trained. Import filename {}".format(maxdepth,filename))
+        else:
+            start = time.time()
+            with measure_time('Training'):
+                model = RandomForestRegressor(bootstrap=True, criterion='mse', max_depth=maxdepth, random_state=42,n_estimators=100, oob_score=True,n_jobs=1)
+                print('Training...randomforest')
+                model.fit(X_train, y_train)
+                print("Maxdepth : {} Score : {}".format(maxdepth, model.oob_score_))
+
+                #Save estimator to file so that we train once
+                joblib.dump(model, filename) 
+        
+
+
+
+    models = []
+    # Importing estimators from filename
+    for maxdepth in maxdepths:
+        filename = "RandomForest_maxd_{}.pkl".format(maxdepth)
+        print("Loading estimator {}".format(filename))
+        if(os.path.isfile(filename)):
+            models.append(joblib.load(filename))
+        else:
+            break
+
+
+    # Predict
+    accuracies = []
+    for model in models:
+        print("Predicting...")
+        y_pred = model.predict(X_test)
+        accuracy = mean_squared_error(y_test, y_pred)
+        accuracies.append(accuracy)
+        print("File: {} MSE: {}".format(filename,accuracy))
+    
+    length = len(models)
+    #Plot accuracy for different max_depths
+    print(accuracies)
+    plt.plot(maxdepths[:length],accuracies)
+    plt.xlabel("maxdepths")
+    plt.ylabel("mean_squared_error")
+    
+    plt.savefig("RandomForest.svg")
+
+    # # ---------Submission: Running model on provided test_set---------------------------- #
+
+    # #Load test data
+    # X_test = load_from_csv(os.path.join(prefix, 'test_user_movie_merge.csv'))
+    # X_test_user_movie_pairs = load_from_csv(os.path.join(prefix, 'data_test.csv'))
+    # #Predict
+    # print("Predicting...")
+    # y_pred = models[0].predict(X_test)
+
+    # fname = make_submission(y_pred, X_test_user_movie_pairs, 'DTR_5')
+    # print('Submission file "{}" successfully written'.format(fname))
+
 
 if __name__ == '__main__':
    
-    decisiontreemethod() # Kaggle error of 1.27
+    # decisiontreemethod() # Kaggle error of 1.27
     
     # knrmethod() # Kaggle error of 2.56
     
+    randomforest()
 
     # ------------------------------ Prediction ------------------------------ #
     # # Load test data
