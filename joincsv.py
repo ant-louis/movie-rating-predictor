@@ -5,8 +5,10 @@ user = pd.read_csv('Data/data_user.csv',dtype=object, encoding='latin-1')
 movie = pd.read_csv('Data/data_movie.csv',dtype=object, encoding='latin-1')
 test = pd.read_csv('Data/data_test.csv',dtype=object, encoding='latin-1')
 movie.drop(columns=['movie_title','IMDb_URL','release_date','video_release_date'], axis=1, inplace=True)
-user.drop(['occupation','zip_code'],axis=1, inplace=True)
+user.drop(['zip_code'],axis=1, inplace=True)
 user = pd.get_dummies(user, columns = ['gender']) #One hot encoding because Decision tree work with valuesnot strings
+user = pd.get_dummies(user, columns = ['occupation']) #One hot encoding because Decision tree work with valuesnot strings
+
 
 # wrong_zipcode = ['V3N4P','Y1A6B','E2A4H','E2A4H','L1V3W','V1G4L','T8H1N',
 #                 'N4T1A','M4J2K','K7L5J','L9G2B','N2L5N','M7A1A','V5A2B','E2E3R',

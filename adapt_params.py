@@ -193,40 +193,29 @@ def decisiontreemethod():
 
 
 
-    # maxdepths = list(range(1,10,1))
-    # cv_results = []
-    # for maxdepth in maxdepths:
-    #     filename = "DTR_maxd_{}.pkl".format(maxdepth)
+    maxdepths = list(range(1,10,1))
+    cv_results = []
+    for maxdepth in maxdepths:
+        filename = "DTR_maxd_{}.pkl".format(maxdepth)
 
-    #     #Skip if the model has already been trained at this depth
-    #     if(os.path.isfile(filename)):
-    #         print("Model with depth {} already trained. Import filename {}".format(maxdepth, filename))
-    #         continue
+        #Skip if the model has already been trained at this depth
+        if(os.path.isfile(filename)):
+            print("Model with depth {} already trained. Import filename {}".format(maxdepth, filename))
+            continue
 
-    #     model = DecisionTreeRegressor(max_depth = maxdepth)
-    #     start = time.time()
-    #     with measure_time('Training'):
-    #         print('Training...with a max_depth of {}'.format(maxdepth))
-    #         scores = cross_val_score(model, training_with_more_features, training_labels, cv=5, scoring='neg_mean_squared_error')
-    #         print(scores)
-    #         cv_results.append(scores.mean()) # Taking the mean of the cv_val tries
-    #         # model.fit(X_train, y_train)
+        model = DecisionTreeRegressor(max_depth = maxdepth)
+        start = time.time()
+        with measure_time('Training'):
+            print('Training...with a max_depth of {}'.format(maxdepth))
+            scores = cross_val_score(model, X_train, y_train, cv=20, scoring='neg_mean_squared_error')
+            print(scores)
+            cv_results.append(scores.mean()) # Taking the mean of the cv_val tries
+            # model.fit(X_train, y_train)
             
 
     #     #Save estimator to file so that we train once
     #     joblib.dump(model, filename) 
 
-    # #Unconstrained model
-    # #Skip if the model has already been trained at this depth
-    # if(os.path.isfile("DTR_None.pkl")):
-    #     print("Model with no depth constrained already trained. Import filename DTR_None.pkl")
-    # else:
-    #     start = time.time()
-    #     with measure_time('Training'):
-    #         print('Training...with no max_depth')
-    #         model = DecisionTreeRegressor().fit(X_ls, y_ls)
-    #     #Save estimator to file so that we train once
-    #     joblib.dump(model, "DTR_None.pkl") 
 
     # # Importing estimators from filename
     # models = []
@@ -235,9 +224,6 @@ def decisiontreemethod():
     #     print("Loading estimator {}".format(filename))
     #     models.append(joblib.load(filename))
 
-    # #Importing unconstrained model
-    # print("Loading estimator DTR_None.pkl".format(filename))
-    # models.append(joblib.load("DTR_None.pkl"))
 
     # # ---------Prediction - Selecting best parameters---------------------------- #
 
@@ -255,9 +241,7 @@ def decisiontreemethod():
     #     print("Predicting...")
     #     y_pred = model.predict(X_test)
     #     accuracies.append(mean_squared_error(y_test, y_pred))
-    
-    # # #Getindex for unconstrained depth
-    # # maxdepths.append(100)
+
     # #Plot accuracy for different max_depths
     # print(accuracies)
     # plt.plot(maxdepths,accuracies)
@@ -267,13 +251,12 @@ def decisiontreemethod():
     # plt.show()
     # plt.savefig("MSE_DT.svg")
 
-    # print(cv_results)
-    # plt.plot(maxdepths,cv_results)
-    # plt.xlabel("maxdepths")
-    # plt.ylabel("neg_mean_squared_error, mean over 5 iterations")
+    print(cv_results)
+    plt.plot(maxdepths,cv_results)
+    plt.xlabel("maxdepths")
+    plt.ylabel("neg_mean_squared_error, mean over 5 iterations")
     
-    # plt.show()
-    # plt.savefig("MSE_DT_Crossval5.svg")
+    plt.savefig("MSE_DT_occupation_Crossval20")
 
 
     # # ---------Submission: Running model on provided test_set---------------------------- #
@@ -283,7 +266,7 @@ def decisiontreemethod():
     X_test_user_movie_pairs = load_from_csv(os.path.join(prefix, 'data_test.csv'))
     #Predict
     print("Predicting...")
-    y_pred = DecisionTreeRegressor(max_depth = 5).fit(X_train,y_train).predict(X_test)
+    y_pred = DecisionTreeRegressor(max_depth = 8).fit(X_train,y_train).predict(X_test)
 
     fname = make_submission(y_pred, X_test_user_movie_pairs, 'DTR_5')
     print('Submission file "{}" successfully written'.format(fname))
