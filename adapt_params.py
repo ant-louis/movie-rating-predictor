@@ -6,12 +6,12 @@ import time
 import datetime
 from contextlib import contextmanager
 import random
-
 import pandas as pd
 import numpy as np
 from scipy import sparse
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.neighbors import KNeighborsRegressor
+from sklearn.model_selection import cross_val_score
 
 # from sklearn.metrics import accuracy_score
 from sklearn.metrics import mean_squared_error
@@ -115,17 +115,11 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
     """
     # Feature for users
     rating_matrix = rating_matrix.tocsr()
-    # print(rating_matrix)
     user_features = rating_matrix[user_movie_pairs[:, 0]]
-    # print(user_features)
 
 
-    # Features for movies
     rating_matrix = rating_matrix.tocsc()
     movie_features = rating_matrix[:, user_movie_pairs[:, 1]].transpose()
-    print("user_movie_pairs[:, 1]")
-    print(user_movie_pairs[:, 1])
-
     X = sparse.hstack((user_features, movie_features))
     return X.tocsr()
 
@@ -182,91 +176,88 @@ def decisiontreemethod():
 
     # ------------------------------- Learning ------------------------------- #
     # Load training data
-    training_user_movie_pairs = load_from_csv(os.path.join(prefix,
-                                                            'data_train.csv'))
-    training_labels = load_from_csv(os.path.join(prefix, 'output_train.csv'))
+    X_train = load_from_csv(os.path.join(prefix,
+                                                            'train_user_movie_merge.csv'))
+    y_train = load_from_csv(os.path.join(prefix, 'output_train.csv'))
 
 
-    #Shuffle so we have a bit of every user
-    # index = list(range(len(training_user_movie_pairs)))
-    # SEED = 42
-    # random.seed(SEED)
-    # random.shuffle(index)
-    # training_user_movie_pairs = training_user_movie_pairs[index,:]
-    # training_labels = training_labels[index]
+    # X_train, X_test, y_train, y_test = train_test_split(training_with_more_features, training_labels, test_size=0.2, random_state=42)
 
-    X_train, X_test, y_train, y_test = train_test_split(training_user_movie_pairs, training_labels, test_size=0.2, random_state=42)
+    # user_movie_rating_triplets = np.hstack((X_train,
+    #                                         y_train.reshape((-1, 1))))
 
-    user_movie_rating_triplets = np.hstack((X_train,
-                                            y_train.reshape((-1, 1))))
-
-    # Build the learning matrix
-    rating_matrix = build_rating_matrix(user_movie_rating_triplets)
-    X_ls = create_learning_matrices(rating_matrix, X_train)
-
-    y_ls = y_train
-
-    maxdepths = list(range(1,60,5))
-    for maxdepth in maxdepths:
-        filename = "DTR_maxd_{}.pkl".format(maxdepth)
-
-        #Skip if the model has already been trained at this depth
-        if(os.path.isfile(filename)):
-            print("Model with depth {} already trained. Import filename {}".format(maxdepth, filename))
-            continue
-
-        model = DecisionTreeRegressor(max_depth = maxdepth)
-        start = time.time()
-        with measure_time('Training'):
-            print('Training...with a max_depth of {}'.format(maxdepth))
-            model.fit(X_ls, y_ls)
-
-        #Save estimator to file so that we train once
-        joblib.dump(model, filename) 
-
-    #Unconstrained model
-    #Skip if the model has already been trained at this depth
-    if(os.path.isfile("DTR_None.pkl")):
-        print("Model with no depth constrained already trained. Import filename DTR_None.pkl")
-    else:
-        start = time.time()
-        with measure_time('Training'):
-            print('Training...with no max_depth')
-            model = DecisionTreeRegressor().fit(X_ls, y_ls)
-        #Save estimator to file so that we train once
-        joblib.dump(model, "DTR_None.pkl") 
-
-    # Importing estimators from filename
-    models = []
-    for maxdepth in maxdepths:
-        filename = "DTR_maxd_{}.pkl".format(maxdepth)
-        print("Loading estimator {}".format(filename))
-        models.append(joblib.load(filename))
-
-    #Importing unconstrained model
-    print("Loading estimator DTR_None.pkl".format(filename))
-    models.append(joblib.load("DTR_None.pkl"))
-
-    # ---------Prediction - Selecting best parameters---------------------------- #
+    # # Build the learning matrix
+    # rating_matrix = build_rating_matrix(user_movie_rating_triplets)
+    # X_train_matrix = create_learning_matrices(rating_matrix, X_train)
 
 
-    # Build the prediction matrix
-    user_movie_rating_triplets = np.hstack((X_test,
-                                            y_test.reshape((-1, 1))))
-    rating_matrix = build_rating_matrix(user_movie_rating_triplets)
-    X_ts_matrix = create_learning_matrices(rating_matrix, X_test)
+
+
+    # maxdepths = list(range(1,10,1))
+    # cv_results = []
+    # for maxdepth in maxdepths:
+    #     filename = "DTR_maxd_{}.pkl".format(maxdepth)
+
+    #     #Skip if the model has already been trained at this depth
+    #     if(os.path.isfile(filename)):
+    #         print("Model with depth {} already trained. Import filename {}".format(maxdepth, filename))
+    #         continue
+
+    #     model = DecisionTreeRegressor(max_depth = maxdepth)
+    #     start = time.time()
+    #     with measure_time('Training'):
+    #         print('Training...with a max_depth of {}'.format(maxdepth))
+    #         scores = cross_val_score(model, training_with_more_features, training_labels, cv=5, scoring='neg_mean_squared_error')
+    #         print(scores)
+    #         cv_results.append(scores.mean()) # Taking the mean of the cv_val tries
+    #         # model.fit(X_train, y_train)
+            
+
+    #     #Save estimator to file so that we train once
+    #     joblib.dump(model, filename) 
+
+    # #Unconstrained model
+    # #Skip if the model has already been trained at this depth
+    # if(os.path.isfile("DTR_None.pkl")):
+    #     print("Model with no depth constrained already trained. Import filename DTR_None.pkl")
+    # else:
+    #     start = time.time()
+    #     with measure_time('Training'):
+    #         print('Training...with no max_depth')
+    #         model = DecisionTreeRegressor().fit(X_ls, y_ls)
+    #     #Save estimator to file so that we train once
+    #     joblib.dump(model, "DTR_None.pkl") 
+
+    # # Importing estimators from filename
+    # models = []
+    # for maxdepth in maxdepths:
+    #     filename = "DTR_maxd_{}.pkl".format(maxdepth)
+    #     print("Loading estimator {}".format(filename))
+    #     models.append(joblib.load(filename))
+
+    # #Importing unconstrained model
+    # print("Loading estimator DTR_None.pkl".format(filename))
+    # models.append(joblib.load("DTR_None.pkl"))
+
+    # # ---------Prediction - Selecting best parameters---------------------------- #
+
+
+    # # Build the prediction matrix
+    # user_movie_rating_triplets = np.hstack((X_test,
+    #                                         y_test.reshape((-1, 1))))
+    # rating_matrix = build_rating_matrix(user_movie_rating_triplets)
+    # X_ts_matrix = create_learning_matrices(rating_matrix, X_test)
     
-    y_ts = y_test
 
-    # # Predict
+    # Predict
     # accuracies = []
     # for model in models:
     #     print("Predicting...")
-    #     y_pred = model.predict(X_ts_matrix)
-    #     accuracies.append(mean_squared_error(y_ts, y_pred))
+    #     y_pred = model.predict(X_test)
+    #     accuracies.append(mean_squared_error(y_test, y_pred))
     
-    # #Getindex for unconstrained depth
-    # maxdepths.append(100)
+    # # #Getindex for unconstrained depth
+    # # maxdepths.append(100)
     # #Plot accuracy for different max_depths
     # print(accuracies)
     # plt.plot(maxdepths,accuracies)
@@ -276,17 +267,25 @@ def decisiontreemethod():
     # plt.show()
     # plt.savefig("MSE_DT.svg")
 
-    # ---------Submission: Running model on provided test_set---------------------------- #
+    # print(cv_results)
+    # plt.plot(maxdepths,cv_results)
+    # plt.xlabel("maxdepths")
+    # plt.ylabel("neg_mean_squared_error, mean over 5 iterations")
+    
+    # plt.show()
+    # plt.savefig("MSE_DT_Crossval5.svg")
+
+
+    # # ---------Submission: Running model on provided test_set---------------------------- #
 
     #Load test data
-    test_user_movie_pairs = load_from_csv(os.path.join(prefix, 'data_test.csv'))
-    # Build the prediction matrix
-    X_ts = create_learning_matrices(rating_matrix, test_user_movie_pairs)
+    X_test = load_from_csv(os.path.join(prefix, 'test_user_movie_merge.csv'))
+    X_test_user_movie_pairs = load_from_csv(os.path.join(prefix, 'data_test.csv'))
     #Predict
     print("Predicting...")
-    y_pred = models[0].predict(X_ts)
+    y_pred = DecisionTreeRegressor(max_depth = 5).fit(X_train,y_train).predict(X_test)
 
-    fname = make_submission(y_pred, test_user_movie_pairs, 'DTR_1')
+    fname = make_submission(y_pred, X_test_user_movie_pairs, 'DTR_5')
     print('Submission file "{}" successfully written'.format(fname))
 
 
@@ -381,7 +380,7 @@ if __name__ == '__main__':
     decisiontreemethod() # Kaggle error of 1.27
     
     # knrmethod() # Kaggle error of 2.56
-        
+    
 
     # ------------------------------ Prediction ------------------------------ #
     # # Load test data
