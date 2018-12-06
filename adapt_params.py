@@ -177,52 +177,59 @@ def decisiontreemethod():
 
     # ------------------------------- Learning ------------------------------- #
     # Load training data
-    X_train = load_from_csv(os.path.join(prefix,
-                                                            'train_user_movie_merge.csv'))
-    y_train = load_from_csv(os.path.join(prefix, 'output_train.csv'))
+    training_merge_data = load_from_csv(os.path.join(prefix, 'train_user_movie_merge.csv'))
+    training_labels = load_from_csv(os.path.join(prefix, 'output_train.csv'))
+
+    X_train, X_test, y_train, y_test = train_test_split(training_merge_data, training_labels, test_size=0.1, random_state=42)
     
     #Tuning the complexity of the DecisionTree
     maxdepths = list(range(1,X_train.shape[1],1))
     cv_results = []
+    models = []
     for maxdepth in maxdepths:
         model = DecisionTreeRegressor(max_depth = maxdepth)
-        start = time.time()
         with measure_time('Training'):
             print('Training...with a max_depth of {}'.format(maxdepth))
             scores = cross_val_score(model, X_train, y_train, cv=10, scoring='neg_mean_squared_error')
             print(scores)
             cv_results.append(scores.mean()) # Taking the mean of the cv_val tries
-            # model.fit(X_train, y_train)
+            model.fit(X_train, y_train)
+        models.append(model)
 
     # # ---------Selecting best parameters when building different models---------------------------- #
     """ Needs a test/train split and different models"""
 
+    accuracies = []
+    i = 0
+    for model in models:
+        print("Predicting...")
+        y_pred = model.predict(X_test)
+        accuracy = mean_squared_error(y_test, y_pred)
+        accuracies.append(accuracy)
+        print("Model: {} MSE: {}".format(i,accuracy))
+        i+=1
+      
+     best_accuracy = min(accuracies)
+     best_depth = accuracies.index(min(accuracies))
+     print("Best accuracy: {} - Maxdepth: {}".format(best_accuracy, best_depth))
 
-    # accuracies = []
-    # for model in models:
-    #     print("Predicting...")
-    #     y_pred = model.predict(X_test)
-    #     accuracy = mean_squared_error(y_test, y_pred)
-    #     accuracies.append(accuracy)
-    #     print("Model: {} MSE: {}".format(i,accuracy))
-    #     i+=1
     
-    # #Plot accuracy for different max_depths
-    # print(accuracies)
-    # plt.plot(maxdepths,accuracies)
-    # plt.xlabel("maxdepths")
-    # plt.ylabel("mean_squared_error")
+    #Plot accuracy for different max_depths
+    print(accuracies)
+    plt.plot(maxdepths,accuracies)
+    plt.xlabel("maxdepths")
+    plt.ylabel("mean_squared_error")
     
     # filename = ".svg"
     # plt.savefig(filename)
 
-    # # ---------Plotting cross-validation results---------------------------- #
+    # ---------Plotting cross-validation results---------------------------- #
 
     print(cv_results)
     plt.plot(maxdepths,cv_results)
     plt.xlabel("maxdepths")
     plt.ylabel("Negative_mean_squared_error")
-    plt.savefig("MSE_DT_features_Crossval10.svg")
+    # plt.savefig("MSE_DT_features_Crossval10.svg")
 
 
     # # ---------Submission: Running model on provided test_set---------------------------- #
@@ -237,159 +244,161 @@ def decisiontreemethod():
     # fname = make_submission(y_pred, X_test_user_movie_pairs, 'DTR_5')
     # print('Submission file "{}" successfully written'.format(fname))
 
+
+# def knrmethod():
+#     prefix = 'Data/'
+
+#     # ------------------------------- Learning ------------------------------- #
+#     # Load training data
+#     training_merge_data = load_from_csv(os.path.join(prefix, 'train_user_movie_merge.csv'))
+#     training_labels = load_from_csv(os.path.join(prefix, 'output_train.csv'))
+
+#     X_train, X_test, y_train, y_test = train_test_split(training_merge_data, training_labels, test_size=0.1, random_state=42)
+
+#     #Tuning the complexity of the KNRegressor
+#     neighbors = list(range(1,201,5))
+#     cv_results = []
+#     models = []
+#     for neighbor in neighbors:
+#         model = KNeighborsRegressor(n_neighbors = neighbor)
+#         with measure_time('Training'):
+#             print('Training...with a n_neighbors of {}'.format(neighbor))
+#             scores = cross_val_score(model, X_train, y_train, cv=10, scoring='neg_mean_squared_error')
+#             print(scores.mean())
+#             cv_results.append(scores.mean()) # Taking the mean of the cv_val tries
+#             model.fit(X_train, y_train)
+#         models.append(model)
+
+#     # # ---------Selecting best parameters when building different models---------------------------- #
+#     """ Needs a test/train split and different models"""
+
+#     accuracies = []
+#     i = 1
+#     for model in models:
+#         print("Predicting...")
+#         y_pred = model.predict(X_test)
+#         accuracy = mean_squared_error(y_test, y_pred)
+#         accuracies.append(accuracy)
+#         print("Model: {} MSE: {}".format(i,accuracy))
+#         i+=5
+
+#     best_accuracy = min(accuracies)
+#     best_neigh = accuracies.index(min(accuracies))
+#     print("Best accuracy: {} - Nb of neighbors: {}".format(best_accuracy, best_neigh))
     
-
-
-def knrmethod():
-    prefix = 'Data/'
-
-    # ------------------------------- Learning ------------------------------- #
-    # Load training data
-    training_user_movie_pairs = load_from_csv(os.path.join(prefix,
-                                                            'data_train.csv'))
-    training_labels = load_from_csv(os.path.join(prefix, 'output_train.csv'))
-
-    X_train, X_test, y_train, y_test = train_test_split(training_user_movie_pairs, training_labels, test_size=0.1, random_state=42)
+#     # #Plot accuracy for different n_neighbors
+#     # print(accuracies)
+#     # plt.plot(neighbors,accuracies)
+#     # plt.xlabel("maxdepths")
+#     # plt.ylabel("mean_squared_error")
     
+#     # filename = ".svg"
+#     # plt.savefig(filename)
 
-    #Tuning the complexity of the KNRegressor
-    neighbors = list(range(1,200,5))
-    cv_results = []
-    for neighbor in neighbors:
-        model = KNeighborsRegressor(n_neighbors = neighbor)
-        start = time.time()
-        with measure_time('Training'):
-            print('Training...with a n_neighbors of {}'.format(neighbor))
-            scores = cross_val_score(model, X_train, y_train, cv=5, scoring='neg_mean_squared_error')
-            print(scores.mean())
-            cv_results.append(scores.mean()) # Taking the mean of the cv_val tries
+#     # # # ---------Plotting cross-validation results---------------------------- #
 
-    # # ---------Selecting best parameters when building different models---------------------------- #
-    """ Needs a test/train split and different models"""
+#     # print(cv_results)
+#     # plt.plot(neighbors,cv_results)
+#     # plt.xlabel("n_neighbors")
+#     # plt.ylabel("Negative_mean_squared_error")
+#     # plt.savefig("NMSE_KNN_features_Crossval5.svg")
 
-
-    # accuracies = []
-    # for model in models:
-    #     print("Predicting...")
-    #     y_pred = model.predict(X_test)
-    #     accuracy = mean_squared_error(y_test, y_pred)
-    #     accuracies.append(accuracy)
-    #     print("Model: {} MSE: {}".format(i,accuracy))
-    #     i+=1
+#     # ---------Submission: Running model on provided test_set---------------------------- #
     
-    # #Plot accuracy for different n_neighbors
-    # print(accuracies)
-    # plt.plot(neighbors,accuracies)
-    # plt.xlabel("maxdepths")
-    # plt.ylabel("mean_squared_error")
+#     # print("Predicting...")
+#     # # Load test data
+#     # test_user_movie_pairs = load_from_csv(os.path.join(prefix, 'data_test.csv'))
+#     # # Build the prediction matrix
+#     # X_ts = create_learning_matrices(rating_matrix, test_user_movie_pairs)
+#     # #Predict
+#     # y_pred = model.predict(X_ts)
+
+#     # fname = make_submission(y_pred, test_user_movie_pairs, 'KNR_56')
+#     # print('Submission file "{}" successfully written'.format(fname))
+
+
+
+# def randomforest():
+#     prefix = 'Data/'
+
+#     # ------------------------------- Learning ------------------------------- #
+#     # Load training data
+#     training_with_more_features = load_from_csv(os.path.join(prefix,
+#                                                             'train_user_movie_merge.csv'))
+#     training_labels = load_from_csv(os.path.join(prefix, 'output_train.csv'))
+
+#     X_train, X_test, y_train, y_test = train_test_split(training_with_more_features, training_labels, test_size=0.2, random_state=42)
+
+#     #Tuning the complexity(only max_depth) of the RandomForest
+#     maxdepths = list(range(28,35,1))
+#     for maxdepth in maxdepths:
+#         filename = "estimators/RandomForest_maxd_{}.pkl".format(maxdepth)
+
+#         #Skip if the model has already been trained at this depth
+#         if(os.path.isfile(filename)):
+#             print("RandomforestModel with max_d {} already trained. Import filename {}".format(maxdepth,filename))
+#         else:
+#             start = time.time()
+#             with measure_time('Training'):
+#                 model = RandomForestRegressor(bootstrap=True, criterion='mse', max_depth=maxdepth, random_state=42,n_estimators=100, oob_score=True,n_jobs=1)
+#                 print('Training...randomforest')
+#                 model.fit(X_train, y_train)
+#                 print("Maxdepth : {} Score : {}".format(maxdepth, model.oob_score_))
+
+#                 #Save estimator to file so that we train once
+#                 joblib.dump(model, filename) 
     
-    # filename = ".svg"
-    # plt.savefig(filename)
+#     # # ---------Selecting best parameters when building different models---------------------------- #
 
-    # # ---------Plotting cross-validation results---------------------------- #
+#     models = []
+#     # Importing estimators from filename
+#     for maxdepth in maxdepths:
+#         filename = "estimators/RandomForest_maxd_{}.pkl".format(maxdepth)
+#         print("Loading estimator {}".format(filename))
+#         if(os.path.isfile(filename)):
+#             models.append(joblib.load(filename))
+#         else:
+#             break
 
-    print(cv_results)
-    plt.plot(neighbors,cv_results)
-    plt.xlabel("n_neighbors")
-    plt.ylabel("Negative_mean_squared_error")
-    plt.savefig("NMSE_KNN_features_Crossval5.svg")
-
-    # ---------Submission: Running model on provided test_set---------------------------- #
+#     # Predict
+#     accuracies = []
+#     i = 28
+#     for model in models:
+#         print("Predicting...")
+#         y_pred = model.predict(X_test)
+#         accuracy = mean_squared_error(y_test, y_pred)
+#         accuracies.append(accuracy)
+#         print("File: {} MSE: {}".format(i,accuracy))
+#         i+=1
     
-    # print("Predicting...")
-    # # Load test data
-    # test_user_movie_pairs = load_from_csv(os.path.join(prefix, 'data_test.csv'))
-    # # Build the prediction matrix
-    # X_ts = create_learning_matrices(rating_matrix, test_user_movie_pairs)
-    # #Predict
-    # y_pred = model.predict(X_ts)
+#     #Plot accuracy for different max_depths
+#     print(accuracies)
+#     plt.plot(maxdepths,accuracies)
+#     plt.xlabel("maxdepths")
+#     plt.ylabel("mean_squared_error")
+#     plt.savefig("RandomForest_precise.svg")
 
-    # fname = make_submission(y_pred, test_user_movie_pairs, 'KNR_56')
-    # print('Submission file "{}" successfully written'.format(fname))
+#     # # ---------Submission: Running model on provided test_set---------------------------- #
 
-def randomforest():
-    prefix = 'Data/'
+#     # #Load test data
+#     # X_test = load_from_csv(os.path.join(prefix, 'test_user_movie_merge.csv'))
+#     # X_test_user_movie_pairs = load_from_csv(os.path.join(prefix, 'data_test.csv'))
 
-    # ------------------------------- Learning ------------------------------- #
-    # Load training data
-    training_with_more_features = load_from_csv(os.path.join(prefix,
-                                                            'train_user_movie_merge.csv'))
-    training_labels = load_from_csv(os.path.join(prefix, 'output_train.csv'))
+#     # models = joblib.load("RandomForest_maxd_31.pkl")
 
-    X_train, X_test, y_train, y_test = train_test_split(training_with_more_features, training_labels, test_size=0.2, random_state=42)
+#     # #Predict
+#     # print("Predicting...")
+#     # y_pred = models.predict(X_test)
 
-    #Tuning the complexity(only max_depth) of the RandomForest
-    maxdepths = list(range(28,35,1))
-    for maxdepth in maxdepths:
-        filename = "estimators/RandomForest_maxd_{}.pkl".format(maxdepth)
-
-        #Skip if the model has already been trained at this depth
-        if(os.path.isfile(filename)):
-            print("RandomforestModel with max_d {} already trained. Import filename {}".format(maxdepth,filename))
-        else:
-            start = time.time()
-            with measure_time('Training'):
-                model = RandomForestRegressor(bootstrap=True, criterion='mse', max_depth=maxdepth, random_state=42,n_estimators=100, oob_score=True,n_jobs=1)
-                print('Training...randomforest')
-                model.fit(X_train, y_train)
-                print("Maxdepth : {} Score : {}".format(maxdepth, model.oob_score_))
-
-                #Save estimator to file so that we train once
-                joblib.dump(model, filename) 
-    
-    # # ---------Selecting best parameters when building different models---------------------------- #
-
-
-    models = []
-    # Importing estimators from filename
-    for maxdepth in maxdepths:
-        filename = "estimators/RandomForest_maxd_{}.pkl".format(maxdepth)
-        print("Loading estimator {}".format(filename))
-        if(os.path.isfile(filename)):
-            models.append(joblib.load(filename))
-        else:
-            break
-
-
-    # Predict
-    accuracies = []
-    i = 28
-    for model in models:
-        print("Predicting...")
-        y_pred = model.predict(X_test)
-        accuracy = mean_squared_error(y_test, y_pred)
-        accuracies.append(accuracy)
-        print("File: {} MSE: {}".format(i,accuracy))
-        i+=1
-    
-    #Plot accuracy for different max_depths
-    print(accuracies)
-    plt.plot(maxdepths,accuracies)
-    plt.xlabel("maxdepths")
-    plt.ylabel("mean_squared_error")
-    plt.savefig("RandomForest_precise.svg")
-
-    # # ---------Submission: Running model on provided test_set---------------------------- #
-
-    # #Load test data
-    # X_test = load_from_csv(os.path.join(prefix, 'test_user_movie_merge.csv'))
-    # X_test_user_movie_pairs = load_from_csv(os.path.join(prefix, 'data_test.csv'))
-
-    # models = joblib.load("RandomForest_maxd_31.pkl")
-
-    # #Predict
-    # print("Predicting...")
-    # y_pred = models.predict(X_test)
-
-    # fname = make_submission(y_pred, X_test_user_movie_pairs, 'RandomForr_31')
-    # print('Submission file "{}" successfully written'.format(fname))
+#     # fname = make_submission(y_pred, X_test_user_movie_pairs, 'RandomForr_31')
+#     # print('Submission file "{}" successfully written'.format(fname))
 
 
 if __name__ == '__main__':
    
-    # decisiontreemethod() # Kaggle error of 1.27
+    #decisiontreemethod() # Kaggle error of 1.27
     
     knrmethod() # Kaggle error of 2.56
     
-    # randomforest()
+    #randomforest()
 
