@@ -111,4 +111,4 @@ if __name__ == "__main__":
     print("The optimal number of neighbors is {}".format(optimal_nb))
 
     accuracy = compute_accuracy(optimal_nb)
-    print("The optimal accuracy with {} neighbors is {}".format(optimal_nb, accuracy))
+    print("The optimal accuracy on the testing set with {} neighbors is {}".format(optimal_nb, accuracy))
