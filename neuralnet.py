@@ -5,15 +5,23 @@ import os
 import time
 import datetime
 from contextlib import contextmanager
-
-
+import random
 import pandas as pd
 import numpy as np
 from scipy import sparse
 from sklearn.tree import DecisionTreeRegressor
+from sklearn.neighbors import KNeighborsRegressor
 from sklearn.model_selection import cross_val_score
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.neural_network import MLPRegressor
+from sklearn.model_selection import RandomizedSearchCV
+from sklearn.model_selection import GridSearchCV
+# from sklearn.metrics import accuracy_score
+from sklearn.metrics import mean_squared_error
 
-
+from sklearn.model_selection import train_test_split
+from sklearn.externals import joblib
+from matplotlib import pyplot as plt
 @contextmanager
 def measure_time(label):
     """
@@ -112,10 +120,9 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
     rating_matrix = rating_matrix.tocsr()
     user_features = rating_matrix[user_movie_pairs[:, 0]]
 
-    # Features for movies
+
     rating_matrix = rating_matrix.tocsc()
     movie_features = rating_matrix[:, user_movie_pairs[:, 1]].transpose()
-
     X = sparse.hstack((user_features, movie_features))
     return X.tocsr()
 
@@ -164,44 +171,107 @@ def make_submission(y_predict, user_movie_ids, file_name='submission',
             handle.write(line)
     return file_name
 
+def evaluate(model, test_features, test_labels):
 
-if __name__ == '__main__':
+    predictions = model.predict(test_features)
+    errors = abs(predictions - test_labels)
+    mape = 100 * np.mean(errors / test_labels)
+    accuracy = 100 - mape
+    print('Model Performance')
+    print('Average Error: {:0.4f} degrees.'.format(np.mean(errors)))
+    print('Accuracy = {:0.2f}%.'.format(accuracy))
+
+    return accuracy
+
+def parameter_tuning(grid):
+    prefix='Data/'
+
+    
+
+   
+    #-------------------------------------ALL FEATURES --------------------------------------------------------------------
+    training_with_more_features = load_from_csv(os.path.join(prefix,
+                                                            'train_user_movie_merge.csv'))
+    training_labels = load_from_csv(os.path.join(prefix, 'output_train.csv'))
+
+    X_train, X_test, y_train, y_test = train_test_split(training_with_more_features, training_labels, test_size=0.2, random_state=42)
+
+    #----------------------------------------------------------------------------------------------------------------------
+    model = MLPRegressor(random_state = 42)
+    rf_determ =RandomizedSearchCV(estimator =model, 
+                                    param_distributions = grid, 
+                                    cv = 2,
+                                    verbose=2, 
+                                    n_jobs = -1  
+                                    )
+    rf_determ.fit(X_train, y_train)
+
+    print(rf_determ.best_params_)
+    
+
+    base_model = MLPRegressor()
+    base_model.fit(X_train, y_train)
+    base_accuracy = evaluate(base_model, X_test, y_test)
+    best_determ = rf_determ.best_estimator_
+    determ_accuracy = evaluate(best_determ, X_test, y_test)
+
+    print('Improvement of {:0.2f}%.'.format( 100 * (determ_accuracy - base_accuracy) / base_accuracy))
+
+
+
+
+def neuralnet():
     prefix = 'Data/'
 
     # ------------------------------- Learning ------------------------------- #
     # Load training data
-    training_user_movie_pairs = load_from_csv(os.path.join(prefix,
-                                                           'data_train.csv'))
+    training_with_more_features = load_from_csv(os.path.join(prefix,
+                                                            'train_user_movie_merge.csv'))
     training_labels = load_from_csv(os.path.join(prefix, 'output_train.csv'))
 
-    user_movie_rating_triplets = np.hstack((training_user_movie_pairs,
-                                            training_labels.reshape((-1, 1))))
+    X_train, X_test, y_train, y_test = train_test_split(training_with_more_features, training_labels, test_size=0.2, random_state=42)
 
-    # Build the learning matrix
-    rating_matrix = build_rating_matrix(user_movie_rating_triplets)
-    X_ls = create_learning_matrices(rating_matrix, training_user_movie_pairs)
+    model= None
+    with measure_time('Training...neural net'):
+        model = MLPRegressor(hidden_layer_sizes = (400,), 
+                            activation = 'logistic', 
+                            learning_rate_init = 0.0005,
+                            learning_rate = 'constant')
+        model.fit(X_train, y_train)
 
-    # Build the model
-    y_ls = training_labels
-    start = time.time()
-    model = DecisionTreeRegressor()
+    print(model)
+    # Predict
+    print("Predicting...")
 
-    with measure_time('Training'):
-        print('Training...')
-        scores = cross_val_score(model, X_ls, y_ls, cv=5, scoring='neg_mean_squared_error',n_jobs=-1)
-        print(scores.mean())
+    y_pred_test = model.predict(X_test)
+    y_pred_train = model.predict(X_train)
+    MSE_test = mean_squared_error(y_test, y_pred_test)
+    MSE_train = mean_squared_error(y_train, y_pred_train)
 
-    # # ------------------------------ Prediction ------------------------------ #
-    # # Load test data
-    # test_user_movie_pairs = load_from_csv(os.path.join(prefix, 'data_test.csv'))
+    print("Testing set MSE : {}".format(MSE_test))
+    print("Training set MSE : {}".format(MSE_train))
 
-    # # Build the prediction matrix
-    # X_ts = create_learning_matrices(rating_matrix, test_user_movie_pairs)
+if __name__ == '__main__':
 
-    # # Predict
-    # y_pred = model.predict(X_ts)
+    # # Number of features to consider at every split
+    # hidden_layer_sizes = [
+    #                       (250,),
+    #                       (300,),
+    #                       (400,),
+    #                       (500,)
+    #                     ]
+                        
+    # activation = ['logistic']
+    # alpha = [0.0001]
+    # learning_rate = ['constant', 'adaptive']
+    # learning_rate_init = [0.0005,0.001,0.003]
+    # deterministic_grid = {'hidden_layer_sizes' : hidden_layer_sizes,
+    #                     'activation' : activation,
+    #                     'alpha':alpha,
+    #                     'learning_rate':learning_rate,
+    #                     'learning_rate_init':learning_rate_init
+    #                     }
 
+    # parameter_tuning(deterministic_grid)
 
-    # # Making the submission file
-    # fname = make_submission(y_pred, test_user_movie_pairs, 'toy_example')
-    # print('Submission file "{}" successfully written'.format(fname))
+    neuralnet()

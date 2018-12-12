@@ -13,7 +13,7 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.model_selection import cross_val_score
 from sklearn.ensemble import RandomForestRegressor
-
+from sklear.neural_network import MLPRegressor
 # from sklearn.metrics import accuracy_score
 from sklearn.metrics import mean_squared_error
 
