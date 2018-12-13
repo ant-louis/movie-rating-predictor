@@ -1,3 +1,4 @@
+
 # ! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
@@ -9,18 +10,11 @@ import random
 import pandas as pd
 import numpy as np
 from scipy import sparse
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.neighbors import KNeighborsRegressor
-from sklearn.model_selection import cross_val_score
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.ensemble import AdaBoostRegressor
-# from sklearn.metrics import accuracy_score
+
+from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.metrics import mean_squared_error
 
-from sklearn.model_selection import RandomizedSearchCV
-from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import train_test_split
-from sklearn.externals import joblib
 from matplotlib import pyplot as plt
 
 #Import own script
@@ -54,9 +48,7 @@ def adaboost():
     y_test = y_ts
 
     # Best estimator after hyperparameter tuning
-    base_model = DecisionTreeRegressor()
-
-    model =  AdaBoostRegressor(base_model)
+    model =  GradientBoostingRegressor(max_depth = 7)
     print(model)
     with base.measure_time('Training'):
         model.fit(X_train, y_train)
