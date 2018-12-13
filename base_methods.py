@@ -73,7 +73,7 @@ def build_rating_matrix(user_movie_rating_triplets):
     return sparse.coo_matrix((training_ratings, (rows, cols))).tocsr()
 
 
-def create_learning_matrices(rating_matrix, user_movie_pairs):
+def create_learning_matrices(rating_matrix, user_movie_pairs_features):
     """
     Create the learning matrix `X` from the `rating_matrix`.
 
@@ -102,30 +102,33 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
     X: sparse array [n_predictions, n_users + n_movies]
         The learning matrix in csr sparse format
     """
+
+    prefix = 'Data/'
+
     # Feature for users
     rating_matrix = rating_matrix.tocsr()
-    user_features = rating_matrix[user_movie_pairs[:, 0]]
+    user_features = rating_matrix[user_movie_pairs_features['user_id'].values]
     # Features for movies
     rating_matrix = rating_matrix.tocsc()
-    movie_features = rating_matrix[:, user_movie_pairs[:, 1]].transpose()
+    movie_features = rating_matrix[:, user_movie_pairs_features['movie_id'].values].transpose()
 
     #Add additional features
-    additional_features = pd.read_csv(os.path.join(prefix, 'train_user_movie_merge.csv'))
-    user_cols = ['age','gender_F','gender_M']
+    user_cols = ['age', 'gender_M']
     movie_cols = ['Action','Adventure','Animation',
                     'Children','Comedy','Crime','Documentary',
                     'Drama','Fantasy','Film-Noir','Horror',
                     'Musical','Mystery','Romance','Sci-Fi',
                     'Thriller','War','Western']
-    additional_user_features = additional_features[user_cols]
-    additional_movie_features = additional_features[movie_cols]
+    
+    additional_user_features = user_movie_pairs_features[user_cols].values
+    additional_movie_features = user_movie_pairs_features[movie_cols].values
 
     
     X = sparse.hstack((user_features, 
                         movie_features,
-                        additional_user_features['age'].values.reshape(-1,1),
-                        additional_user_features['gender_M'].values.reshape(-1,1),
-                        additional_movie_features.values))
+                        additional_user_features,
+                        additional_user_features,
+                        additional_movie_features))
     return X.tocsr()
 
 
