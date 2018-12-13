@@ -1,6 +1,5 @@
 .DS_Store
 *.pkl
 *.zip
-*.svg
 *.txt
 __pycache__
