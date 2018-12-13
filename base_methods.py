@@ -73,7 +73,7 @@ def build_rating_matrix(user_movie_rating_triplets):
     return sparse.coo_matrix((training_ratings, (rows, cols))).tocsr()
 
 
-def create_learning_matrices(rating_matrix, user_movie_pairs_features):
+def create_learning_matrices_features(rating_matrix, user_movie_pairs_features):
     """
     Create the learning matrix `X` from the `rating_matrix`.
 
@@ -129,6 +129,47 @@ def create_learning_matrices(rating_matrix, user_movie_pairs_features):
                         additional_user_features,
                         additional_user_features,
                         additional_movie_features))
+    return X.tocsr()
+
+
+def create_learning_matrices(rating_matrix, user_movie_pairs):
+    """
+    Create the learning matrix `X` from the `rating_matrix`.
+
+    If `u, m = user_movie_pairs[i]`, then X[i] is the feature vector
+    corresponding to user `u` and movie `m`. The feature vector is composed
+    of `n_users + n_movies` features. The `n_users` first features is the
+    `u-th` row of the `rating_matrix`. The `n_movies` last features is the
+    `m-th` columns of the `rating_matrix`
+
+    In other words, the feature vector for a pair (user, movie) is the
+    concatenation of the rating the given user made for all the movies and
+    the rating the given movie receive from all the user.
+
+    Parameters
+    ----------
+    rating_matrix: sparse matrix [n_users, n_movies]
+        The rating matrix. i.e. `rating_matrix[u, m]` is the rating given
+        by the user `u` for the movie `m`. If the user did not give a rating for
+        that movie, `rating_matrix[u, m] = 0`
+    user_movie_pairs: array [n_predictions, 2]
+        If `u, m = user_movie_pairs[i]`, the i-th raw of the learning matrix
+        must relate to user `u` and movie `m`
+
+    Return
+    ------
+    X: sparse array [n_predictions, n_users + n_movies]
+        The learning matrix in csr sparse format
+    """
+    # Feature for users
+    rating_matrix = rating_matrix.tocsr()
+    user_features = rating_matrix[user_movie_pairs[:, 0]]
+
+    # Features for movies
+    rating_matrix = rating_matrix.tocsc()
+    movie_features = rating_matrix[:, user_movie_pairs[:, 1]].transpose()
+
+    X = sparse.hstack((user_features, movie_features))
     return X.tocsr()
 
 
