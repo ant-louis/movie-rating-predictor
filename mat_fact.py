@@ -52,12 +52,12 @@ def matrix_factorization():
     y_train = y_ls
     y_test = y_ts
 
-    # #Train
-    # mf = MF(rating_matrix_train, K=2, alpha=0.1, beta=0.01, iterations=20)
-    # training_process = mf.train()
-    # print(mf.P)
-    # print(mf.Q)
-    # print(mf.full_matrix())
+    #Train
+    mf = MF(rating_matrix_training, K=2, alpha=0.1, beta=0.01, iterations=20)
+    training_process = mf.train()
+    print(mf.P)
+    print(mf.Q)
+    print(mf.full_matrix())
 
 if __name__ == '__main__':
 
