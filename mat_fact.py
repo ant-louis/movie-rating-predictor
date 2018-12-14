@@ -43,9 +43,10 @@ def matrix_factorization():
     # Build the learning matrix
     rating_matrix = base.build_rating_matrix(user_movie_rating_triplets)
     sample_rating_matrix = rating_matrix[np.random.choice(rating_matrix.shape[0], 100, replace=False), :]
+    sample_rating_matrix = sample_rating_matrix[:, np.random.choice(rating_matrix.shape[1], 100, replace=False)]
 
     # Build the model
-    model = MF(sample_rating_matrix, K=2, alpha=0.1, beta=0.01, iterations=20)
+    model = MF(sample_rating_matrix, K=2, alpha=0.1, beta=0.01, iterations=100)
 
     with base.measure_time('Training'):
         print('Training...')
