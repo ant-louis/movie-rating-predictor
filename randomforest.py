@@ -84,27 +84,17 @@ def randomforest():
     prefix = 'Data/'
 
   #-------------------------------------MATRICES WITH FEATURES --------------------------------------------------------------------------
-    training_user_movie_pairs_features = pd.read_csv(os.path.join(prefix,
-                                                           'train_user_movie_merge.csv'))
+
+
+    R = pd.read_csv('predicted_matrix.txt', sep=" ", header=None)
+    
+    user_movie_pairs = base.load_from_csv(os.path.join(prefix, 'data_train.csv'))
     training_labels = base.load_from_csv(os.path.join(prefix, 'output_train.csv'))
 
-    X_ls, X_ts, y_ls, y_ts = train_test_split(training_user_movie_pairs_features, training_labels, test_size=0.2, random_state=42)
+    X_train = base.create_learning_matrices(R.values, user_movie_pairs)
+    y_train = training_labels
 
-    user_movie_rating_triplets_train = np.hstack((X_ls[['user_id','movie_id']].values,
-                                            y_ls.reshape((-1, 1))))
-    user_movie_rating_triplets_test = np.hstack((X_ts[['user_id','movie_id']].values,
-                                            y_ts.reshape((-1, 1))))
-
-    # Build the learning matrixtraining_with_more_features
-    rating_matrix_train = base.build_rating_matrix(user_movie_rating_triplets_train)
-    rating_matrix_test = base.build_rating_matrix(user_movie_rating_triplets_test)
-
-    X_train = base.create_learning_matrices(rating_matrix_train, X_ls)
-    X_test = base.create_learning_matrices(rating_matrix_test, X_ts)
-
-    # Build the model
-    y_train = y_ls
-    y_test = y_ts
+    # ------------------------------- Learning ------------------------------- #
 
     # #-------------------------------------ALL FEATURES --------------------------------------------------------------------
     # training_with_more_features = base.load_from_csv(os.path.join(prefix,
@@ -125,15 +115,13 @@ def randomforest():
                                     max_depth= 9)
 
     print(model)
+    print("Training...")
     with base.measure_time('Training'):
         model.fit(X_train, y_train)
 
     #Check for overfitting
-    y_pred_test = model.predict(X_test)
     y_pred_train = model.predict(X_train)
-    MSE_test = mean_squared_error(y_test, y_pred_test)
     MSE_train = mean_squared_error(y_train, y_pred_train)
-    print("Test set MSE: {}".format(MSE_test))
     print("Train set MSE: {}".format(MSE_train))
 
     # #Plot accuracy for different max_depths
