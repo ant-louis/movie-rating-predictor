@@ -187,15 +187,15 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
         The learning matrix in csr sparse format
     """
     # Feature for users
-    rating_matrix = rating_matrix.tocsr()
-    user_features = rating_matrix[user_movie_pairs[:, 0]]
+    # rating_matrix = rating_matrix.tocsr()
 
+    user_features = rating_matrix[user_movie_pairs[:, 0]]
     # Features for movies
-    rating_matrix = rating_matrix.tocsc()
+    # rating_matrix = rating_matrix.tocsc()
     movie_features = rating_matrix[:, user_movie_pairs[:, 1]].transpose()
 
-    X = sparse.hstack((user_features, movie_features))
-    return X.tocsr()
+    X = np.hstack((user_features, movie_features))
+    return X
 
 
 def make_submission(y_predict, user_movie_ids, file_name='submission',
