@@ -42,18 +42,20 @@ def matrix_factorization():
 
     # Build the learning matrix
     rating_matrix = base.build_rating_matrix(user_movie_rating_triplets)
-    sample_rating_matrix = rating_matrix[np.random.choice(rating_matrix.shape[0], 100, replace=False), :]
-    sample_rating_matrix = sample_rating_matrix[:, np.random.choice(rating_matrix.shape[1], 100, replace=False)]
+    sample_rating_matrix = rating_matrix[np.random.choice(rating_matrix.shape[0], 250, replace=False), :]
+    sample_rating_matrix = sample_rating_matrix[:, np.random.choice(rating_matrix.shape[1], 500, replace=False)]
 
     # Build the model
-    model = MF(sample_rating_matrix, K=2, alpha=0.1, beta=0.01, iterations=100)
+    #for i in range(10,30):
+        #print("K: %d " % (i))
+    model = MF(sample_rating_matrix, K=40, alpha=0.1, beta=0.02, iterations=60)
 
     with base.measure_time('Training'):
         print('Training...')
         model.train()
-        print(model.P)
-        print(model.Q)
-        print(model.full_matrix())
+        # print(model.P)
+        # print(model.Q)
+        # print(model.full_matrix())
 
     # # ------------------------------ Prediction ------------------------------ #
     # # Load test data
