@@ -42,11 +42,24 @@ def matrix_factorization():
 
     # Build the learning matrix
     rating_matrix = base.build_rating_matrix(user_movie_rating_triplets)
-    sample_rating_matrix = rating_matrix[np.random.choice(rating_matrix.shape[0], 100, replace=False), :]
-    sample_rating_matrix = sample_rating_matrix[:, np.random.choice(rating_matrix.shape[1], 100, replace=False)]
+
+    dim_user = 300
+    dim_movie = 1000
+    sample_rating_matrix = rating_matrix[np.random.choice(rating_matrix.shape[0], dim_user, replace=False), :]
+    sample_rating_matrix = sample_rating_matrix[:, np.random.choice(rating_matrix.shape[1], dim_movie, replace=False)]
+
+    test_user_index = random.sample(range(dim_user), int(dim_user / 5))
+    test_movie_index = random.sample(range(dim_movie), int(dim_movie / 5))
+
+    test_sample = [(i, j) for i, j in zip(test_user_index, test_movie_index) if sample_rating_matrix[i, j] != 0]
+
+    true_values = []
+    for i, j in test_sample:
+    	true_values.append(sample_rating_matrix[i, j])
+    	sample_rating_matrix[i, j] = 0
 
     # Build the model
-    model = MF(sample_rating_matrix, K=2, alpha=0.1, beta=0.01, iterations=100)
+    model = MF(sample_rating_matrix, K=100, alpha=0.1, beta=0.01, iterations=20)
 
     with base.measure_time('Training'):
         print('Training...')
@@ -54,6 +67,13 @@ def matrix_factorization():
         print(model.P)
         print(model.Q)
         print(model.full_matrix())
+
+    pred_matrix = model.full_matrix()
+    predictions = []
+    for i, j in test_sample:
+    	predictions.append(pred_matrix[i, j])
+
+    print("Mean squared error: ", mean_squared_error(true_values, predictions))
 
     # # ------------------------------ Prediction ------------------------------ #
     # # Load test data
