@@ -64,9 +64,9 @@ def linearregression():
 
     # Predict
     y_pred = model.predict(X_ts)
-    for y in y_pred:
-            if y > 5.00:
-                y = 5.00
+    for i,y in enumerate(y_pred,0):
+        if y_pred[i] > 5.00:
+            y_pred[i] = 5.00
     
     fname = base.make_submission(y_pred, test_user_movie_pairs, 'MF_withLinearRegression')
     print('Submission file "{}" successfully written'.format(fname))
