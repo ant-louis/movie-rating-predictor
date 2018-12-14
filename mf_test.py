@@ -27,7 +27,7 @@ from matplotlib import pyplot as plt
 import base_methods as base
 
 #Import matrix factorization class
-from mf import MF
+from sklearn.decomposition import NMF
 
 def matrix_factorization():
     prefix='Data/'
@@ -55,14 +55,13 @@ def matrix_factorization():
     # Build the model
     y_train = y_ls
     y_test = y_ts
-    model = MF(rating_matrix_training, K=2, alpha=0.1, beta=0.01, iterations=20)
+    model = NMF(n_components=2, init='random', random_state=42)
 
     with base.measure_time('Training'):
         print('Training...')
-        model.train()
-        print(model.P)
-        print(model.Q)
-        print(model.full_matrix())
+        W = model.fit_transform(X_train)
+        H = model.components_
+        print(H)
 
     # # ------------------------------ Prediction ------------------------------ #
     # # Load test data

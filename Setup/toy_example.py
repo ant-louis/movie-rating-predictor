@@ -165,7 +165,7 @@ def make_submission(y_predict, user_movie_ids, file_name='submission',
 
 
 if __name__ == '__main__':
-    prefix = '/home/tom/Documents/Master1_DataScience/1er QUADRI/Machine_Learning/Projects/Movie-rating-predictor/Data/'
+    prefix = 'Data/'
 
     # ------------------------------- Learning ------------------------------- #
     # Load training data

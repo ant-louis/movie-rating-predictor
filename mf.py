@@ -29,7 +29,7 @@ class MF():
         # Initialize the biases
         self.b_u = np.zeros(self.num_users)
         self.b_i = np.zeros(self.num_items)
-        self.b = np.mean(self.R[np.where(self.R != 0)])
+        self.b = np.mean(self.R)
 
         # Create a list of training samples
         self.samples = [
