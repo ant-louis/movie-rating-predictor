@@ -55,16 +55,17 @@ def adaboost():
     print("MSE for adaboost: {}".format(MSE_train))
 
     # -----------------------Submission: Running model on provided test_set---------------------------- #
-    # #Load test data
-    # X_test = base.load_from_csv(os.path.join(prefix, 'test_user_movie_merge.csv'))
-    # X_test_user_movie_pairs = base.load_from_csv(os.path.join(prefix, 'data_test.csv'))
+    #Load test data
+    test_user_movie_pairs = base.load_from_csv(os.path.join(prefix, 'data_test.csv'))
 
-    # #Predict
-    # print("Predicting...")
-    # y_pred = model.predict(X_test)
+    # Build the prediction matrix
+    X_ts = base.create_learning_matrices(R.values, test_user_movie_pairs)
 
-    # fname = base.make_submission(y_pred, X_test_user_movie_pairs, 'AdaboostMF')
-    # print('Submission file "{}" successfully written'.format(fname))
+    # Predict
+    y_pred = model.predict(X_ts)
+
+    fname = base.make_submission(y_pred, test_user_movie_pairs, 'MF_withAdaboost')
+    print('Submission file "{}" successfully written'.format(fname))
 
 if __name__ == '__main__':
 
