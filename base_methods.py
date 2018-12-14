@@ -47,7 +47,7 @@ def load_from_csv(path, delimiter=','):
     return pd.read_csv(path, delimiter=delimiter).values.squeeze()
 
 
-def build_rating_matrix(user_movie_rating_triplets):
+def build_sparsed_rating_matrix(user_movie_rating_triplets):
     """
     Create the rating matrix from triplets of user and movie and ratings.
 
@@ -71,6 +71,32 @@ def build_rating_matrix(user_movie_rating_triplets):
     training_ratings = user_movie_rating_triplets[:, 2]
 
     return sparse.coo_matrix((training_ratings, (rows, cols))).tocsr()
+
+def build_rating_matrix(user_movie_rating_triplets):
+    """
+    Create the rating matrix from triplets of user and movie and ratings.
+
+    A rating matrix `R` is such that `R[u, m]` is the rating given by user `u`
+    for movie `m`. If no such rating exists, `R[u, m] = 0`.
+
+    Parameters
+    ----------
+    user_movie_rating_triplets: array [n_triplets, 3]
+        an array of trpilets: the user id, the movie id, and the corresponding
+        rating.
+        if `u, m, r = user_movie_rating_triplets[i]` then `R[u, m] = r`
+
+    Return
+    ------
+    R: sparse csr matrix [n_users, n_movies]
+        The rating matrix
+    """
+    rows = user_movie_rating_triplets[:, 0]
+    cols = user_movie_rating_triplets[:, 1]
+    training_ratings = user_movie_rating_triplets[:, 2]
+    matrix = sparse.coo_matrix((training_ratings, (rows, cols))).toarray()
+
+    return np.array(matrix)
 
 
 def create_learning_matrices_features(rating_matrix, user_movie_pairs_features):

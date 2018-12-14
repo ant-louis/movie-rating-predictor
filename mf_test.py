@@ -37,31 +37,23 @@ def matrix_factorization():
     training_user_movie_pairs = base.load_from_csv(os.path.join(prefix, 'data_train.csv'))
     training_labels = base.load_from_csv(os.path.join(prefix, 'output_train.csv'))
 
-    # Splitting the data set
-    X_ls, X_ts, y_ls, y_ts = train_test_split(training_user_movie_pairs, training_labels, test_size=0.2, random_state=42)
-
     # Concatenating data
-    user_movie_rating_triplets_training = np.hstack((X_ls, y_ls.reshape((-1, 1))))
-    user_movie_rating_triplets_testing= np.hstack((X_ts, y_ts.reshape((-1, 1))))
+    user_movie_rating_triplets = np.hstack((training_user_movie_pairs, training_labels.reshape((-1, 1))))
 
     # Build the learning matrix
-    rating_matrix_training = base.build_rating_matrix(user_movie_rating_triplets_training)
-    X_train = base.create_learning_matrices(rating_matrix_training, X_ls)
-
-    rating_matrix_testing = base.build_rating_matrix(user_movie_rating_triplets_testing)
-    X_test = base.create_learning_matrices(rating_matrix_testing, X_ts)
-
+    rating_matrix = base.build_rating_matrix(user_movie_rating_triplets)
+    sample_rating_matrix = rating_matrix[np.random.choice(rating_matrix.shape[0], 100, replace=False), :]
 
     # Build the model
-    y_train = y_ls
-    y_test = y_ts
-    model = NMF(n_components=2, init='random', random_state=42)
+    model = NMF( init='random', random_state=42)
 
     with base.measure_time('Training'):
         print('Training...')
-        W = model.fit_transform(X_train)
-        H = model.components_
-        print(H)
+        H = model.fit_transform(sample_rating_matrix)
+        W = model.components_
+        nR = np.dot(W,H)
+        print(nR)
+       
 
     # # ------------------------------ Prediction ------------------------------ #
     # # Load test data
