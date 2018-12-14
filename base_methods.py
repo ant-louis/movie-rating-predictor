@@ -94,9 +94,8 @@ def build_rating_matrix(user_movie_rating_triplets):
     rows = user_movie_rating_triplets[:, 0]
     cols = user_movie_rating_triplets[:, 1]
     training_ratings = user_movie_rating_triplets[:, 2]
-    matrix = sparse.coo_matrix((training_ratings, (rows, cols))).toarray()
 
-    return np.array(matrix)
+    return sparse.coo_matrix((training_ratings, (rows, cols))).toarray()
 
 
 def create_learning_matrices_features(rating_matrix, user_movie_pairs_features):
