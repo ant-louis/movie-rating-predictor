@@ -2,16 +2,8 @@ import pandas as pd
 import numpy as np
 import base_methods as base
 
-R = np.array([
-    [5, 3, 0, 1],
-    [4, 0, 0, 1],
-    [1, 1, 0, 5],
-    [1, 0, 0, 4],
-    [0, 1, 5, 4],
-])
-
-
-df = pd.read_csv('output_list.txt', sep=" ", header=None)
+df = pd.read_csv("Data/data_test.csv")
+R = pd.read_csv('output_list.txt', sep=" ", header=None)
 
 users = df['user_id'].values
 movies = df['movie_id'].values
