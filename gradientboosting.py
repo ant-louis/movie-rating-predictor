@@ -21,55 +21,33 @@ from matplotlib import pyplot as plt
 import base_methods as base
 
 
-def adaboost():
+def gradient_boosting():
     prefix = 'Data/'
 
-  #-------------------------------------MATRICES WITH FEATURES --------------------------------------------------------------------------
-    training_user_movie_pairs_features = pd.read_csv(os.path.join(prefix,
-                                                           'train_user_movie_merge.csv'))
+    # ------------------------------- Learning ------------------------------- #
+    # Load training data
+    R = pd.read_csv('predicted_matrix.txt', sep=" ", header=None)
+    user_movie_pairs = base.load_from_csv(os.path.join(prefix, 'data_train.csv'))
     training_labels = base.load_from_csv(os.path.join(prefix, 'output_train.csv'))
 
-    X_ls, X_ts, y_ls, y_ts = train_test_split(training_user_movie_pairs_features, training_labels, test_size=0.2, random_state=42)
+    # Build the training learning matrix
+    X_train = base.create_learning_matrices(R.values, user_movie_pairs)
 
-    user_movie_rating_triplets_train = np.hstack((X_ls[['user_id','movie_id']].values,
-                                            y_ls.reshape((-1, 1))))
-    user_movie_rating_triplets_test = np.hstack((X_ts[['user_id','movie_id']].values,
-                                            y_ts.reshape((-1, 1))))
-
-    # Build the learning matrixtraining_with_more_features
-    rating_matrix_train = base.build_rating_matrix(user_movie_rating_triplets_train)
-    rating_matrix_test = base.build_rating_matrix(user_movie_rating_triplets_test)
-
-    X_train = base.create_learning_matrices(rating_matrix_train, X_ls)
-    X_test = base.create_learning_matrices(rating_matrix_test, X_ts)
-
-
-    y_train = y_ls
-    y_test = y_ts
+    # Build the model
+    y_train = training_labels
 
     # Best estimator after hyperparameter tuning
-    model =  GradientBoostingRegressor(max_depth = 7)
-    print(model)
+    model = GradientBoostingRegressor(max_depth = 7)
     with base.measure_time('Training'):
+        print("Training with gradient boosting...")
         model.fit(X_train, y_train)
 
     #Check for overfitting
-    y_pred_test = model.predict(X_test)
     y_pred_train = model.predict(X_train)
-    MSE_test = mean_squared_error(y_test, y_pred_test)
     MSE_train = mean_squared_error(y_train, y_pred_train)
-    print("Test set MSE: {}".format(MSE_test))
-    print("Train set MSE: {}".format(MSE_train))
-
-    # #Plot accuracy for different max_depths
-    # print(accuracies)
-    # plt.plot(maxdepths,accuracies)
-    # plt.xlabel("maxdepths")
-    # plt.ylabel("mean_squared_error")
-    # plt.savefig("RandomForest_precise.svg")
+    print("MSE for gradient boosting: {}".format(MSE_train))
 
     # -----------------------Submission: Running model on provided test_set---------------------------- #
-
     # #Load test data
     # X_test = base.load_from_csv(os.path.join(prefix, 'test_user_movie_merge.csv'))
     # X_test_user_movie_pairs = base.load_from_csv(os.path.join(prefix, 'data_test.csv'))
@@ -78,11 +56,10 @@ def adaboost():
     # print("Predicting...")
     # y_pred = model.predict(X_test)
 
-    # fname = base.make_submission(y_pred, X_test_user_movie_pairs, 'AdaboostWithRandomForest')
+    # fname = base.make_submission(y_pred, X_test_user_movie_pairs, 'GradientBoostingMF')
     # print('Submission file "{}" successfully written'.format(fname))
 
 if __name__ == '__main__':
 
-
-    adaboost()
-    # check_overfitting()
+    gradient_boosting()
+    

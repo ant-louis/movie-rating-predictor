@@ -30,30 +30,40 @@ import base_methods as base
 def linearregression():
     prefix = 'Data/'
 
-
+    # ------------------------------- Learning ------------------------------- #
+    # Load training data
     R = pd.read_csv('predicted_matrix.txt', sep=" ", header=None)
-    
     user_movie_pairs = base.load_from_csv(os.path.join(prefix, 'data_train.csv'))
     training_labels = base.load_from_csv(os.path.join(prefix, 'output_train.csv'))
 
+    # Build the training learning matrix
     X_train = base.create_learning_matrices(R.values, user_movie_pairs)
-    y_train = training_labels
 
-    # ------------------------------- Learning ------------------------------- #
+    # Build the model
+    y_train = training_labels
     model = LinearRegression()
-    print("Training...")
     with base.measure_time('Training'):
+        print("Training with linear regression...")
         model.fit(X_train, y_train)
 
     print("Predicting")
-    y_pred = model.predict(X_train)
-    accuracy = mean_squared_error(training_labels, y_pred)
+    y_pred_train = model.predict(X_train)
 
-    print(accuracy)
+    MSE_train = mean_squared_error(y_train, y_pred_train)
+    print("MSE for linear regression: {}".format(MSE_train))
 
+    # -----------------------Submission: Running model on provided test_set---------------------------- #
+    # #Load test data
+    # X_test = base.load_from_csv(os.path.join(prefix, 'test_user_movie_merge.csv'))
+    # X_test_user_movie_pairs = base.load_from_csv(os.path.join(prefix, 'data_test.csv'))
 
+    # #Predict
+    # print("Predicting...")
+    # y_pred = model.predict(X_test)
+
+    # fname = base.make_submission(y_pred, X_test_user_movie_pairs, 'LinearRegressionMF')
+    # print('Submission file "{}" successfully written'.format(fname))
 
 if __name__ == '__main__':
-
 
     linearregression()
