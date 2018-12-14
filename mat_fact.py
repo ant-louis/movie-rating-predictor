@@ -49,49 +49,29 @@ def matrix_factorization():
     sample_rating_matrix = rating_matrix[np.random.choice(rating_matrix.shape[0], dim_user, replace=False), :]
     sample_rating_matrix = sample_rating_matrix[:, np.random.choice(rating_matrix.shape[1], dim_movie, replace=False)]
 
-    test_user_index = random.sample(range(dim_user), int(dim_user / 5))
-    test_movie_index = random.sample(range(dim_movie), int(dim_movie / 5))
-
-    test_sample = [(i, j) for i, j in zip(test_user_index, test_movie_index) if sample_rating_matrix[i, j] != 0]
-
-    true_values = []
-    for i, j in test_sample:
-    	true_values.append(sample_rating_matrix[i, j])
-    	sample_rating_matrix[i, j] = 0
-
     # Build the model
-    model = MF(sample_rating_matrix, K=30, alpha=1e-5, beta=0.02, iterations=2000)
-
-
+    model = MF(rating_matrix, K=30, alpha=1e-5, beta=0.02, iterations=2000)
     with base.measure_time('Training'):
         print('Training...')
         model.train()
-        # print(model.P)
-        # print(model.Q)
-        # print(model.full_matrix())
+    
+    # Save the predicted matrix
+    predicted_matrix = np.matrix(model.full_matrix())
+    with open('predicted_matrix.txt','wb') as f:
+        for line in predicted_matrix:
+            np.savetxt(f, line, fmt='%.5f')
 
-    pred_matrix = model.full_matrix()
-    predictions = []
-    for i, j in test_sample:
-    	predictions.append(pred_matrix[i, j])
-
-    print("Mean squared error: ", mean_squared_error(true_values, predictions))
-
-    # # ------------------------------ Prediction ------------------------------ #
-    # # Load test data
-    # test_user_movie_pairs = base.load_from_csv(os.path.join(prefix, 'data_test.csv'))
-
-    # # Build the prediction matrix
-    # user_movie_rating_triplets = np.hstack((training_user_movie_pairs, training_labels.reshape((-1, 1))))
-    # rating_matrix = base.build_rating_matrix(user_movie_rating_triplets)
-    # X_ts = base.create_learning_matrices(rating_matrix, test_user_movie_pairs)
-
-    # # Predict
-    # y_pred = model.predict(X_ts)
-
-    # # Making the submission file
-    # fname = make_submission(y_pred, test_user_movie_pairs, 'matrix_factorization')
-    # print('Submission file "{}" successfully written'.format(fname))
+    # # Compute MSE
+    # predictions = []
+    # true_values = []
+    # test_user_index = random.sample(range(dim_user), int(dim_user / 5))
+    # test_movie_index = random.sample(range(dim_movie), int(dim_movie / 5))
+    # test_sample = [(i, j) for i, j in zip(test_user_index, test_movie_index) if sample_rating_matrix[i, j] != 0]
+    # for i, j in test_sample:
+    #     true_values.append(sample_rating_matrix[i, j])
+    #     sample_rating_matrix[i, j] = 0
+    #     predictions.append(predicted_matrix[i, j])
+    # print("Mean squared error: ", mean_squared_error(true_values, predictions))
 
 
 if __name__ == '__main__':
