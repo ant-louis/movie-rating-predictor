@@ -17,97 +17,51 @@ from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.externals import joblib
 from matplotlib import pyplot as plt
-@contextmanager
-def measure_time(label):
-    """
-    Context manager to measure time of computation.
-    >>> with measure_time('Heavy computation'):
-    >>>     do_heavy_computation()
-    'Duration of [Heavy computation]: 0:04:07.765971'
 
-    Parameters
-    ----------
-    label: str
-        The label by which the computation will be referred
-    """
-    start = time.time()
-    yield
-    end = time.time()
-    print('Duration of [{}]: {}'.format(label,
-                                        datetime.timedelta(seconds=end-start)))
+#Import own script
+import base_methods as base
 
-
-def load_from_csv(path, delimiter=','):
-    """
-    Load csv file and return a NumPy array of its data
-
-    Parameters
-    ----------
-    path: str
-        The path to the csv file to load
-    delimiter: str (default: ',')
-        The csv field delimiter
-
-    Return
-    ------
-    D: array
-        The NumPy array of the data contained in the file
-    """
-    return pd.read_csv(path, delimiter=delimiter).values.squeeze()
-
-
-def compute_cross_val(cv_val):
-    # Loading data
+def decision_tree():
     prefix = 'Data/'
-    training_merge_data = load_from_csv(os.path.join(prefix, 'train_user_movie_merge.csv'))
-    training_labels = load_from_csv(os.path.join(prefix, 'output_train.csv'))
 
-    # Perform cross validation
-    cv_results=[]
-    depths = list(range(1,training_merge_data.shape[1],1))
-    for depth in depths:
-        with measure_time('Training'):
-            print('Training...with a depth of {}'.format(depth))
-            model = DecisionTreeRegressor(max_depth = depth)
-            scores = cross_val_score(model, training_merge_data, training_labels, cv=cv_val, scoring='neg_mean_squared_error')
-            cv_results.append(scores.mean())
-    
-    # Compute MSE
-    MSE = [1 - x for x in cv_results]
+    # ------------------------------- Learning ------------------------------- #
+    # Load training data
+    R = pd.read_csv('predicted_matrix.txt', sep=" ", header=None)
+    user_movie_pairs = base.load_from_csv(os.path.join(prefix, 'data_train.csv'))
+    training_labels = base.load_from_csv(os.path.join(prefix, 'output_train.csv'))
 
-    # Determining the best nb of nearest neighbors
-    optimal_depth = depths[MSE.index(min(MSE))]
+    # Build the training learning matrix
+    X_train = base.create_learning_matrices(R.values, user_movie_pairs)
 
-    # # ---------Plotting cross-validation results---------------------------- #
-    # print(cv_results)
-    # plt.plot(maxdepth,cv_results)
-    # plt.xlabel("depth")
-    # plt.ylabel("Negative_mean_squared_error")
-    # plt.savefig("NMSE_DT_features_Crossval10.svg")
+    # Build the model
+    y_train = training_labels
 
-    return (optimal_depth, MSE)
+    # Build model
+    depth = 11
+    with base.measure_time('Training'):
+        print('Training DT with a depth of {}...'.format(depth))
+        model = DecisionTreeRegressor(max_depth = depth)
+        model.fit(X_train, y_train)
 
+    #Check for overfitting
+    y_pred_train = model.predict(X_train)
+    MSE_train = mean_squared_error(y_train, y_pred_train)
+    print("MSE for decision tree with a depth of {}: {}".format(depth, MSE_train))
+       
 
-def compute_accuracy(maxdepth):
-    # Loading data
-    prefix = 'Data/'
-    training_merge_data = load_from_csv(os.path.join(prefix, 'train_user_movie_merge.csv'))
-    training_labels = load_from_csv(os.path.join(prefix, 'output_train.csv'))
+    # -----------------------Submission: Running model on provided test_set---------------------------- #
+    # #Load test data
+    # X_test = base.load_from_csv(os.path.join(prefix, 'test_user_movie_merge.csv'))
+    # X_test_user_movie_pairs = base.load_from_csv(os.path.join(prefix, 'data_test.csv'))
 
-    X_train, X_test, y_train, y_test = train_test_split(training_merge_data, training_labels, test_size=0.1, random_state=42)
+    # #Predict
+    # print("Predicting...")
+    # y_pred = model.predict(X_test)
 
-    estimator = DecisionTreeRegressor(max_depth = maxdepth).fit(X_train, y_train)
-    y_pred = estimator.predict(X_test)
-    accuracy = mean_squared_error(y_test, y_pred)
+    # fname = base.make_submission(y_pred, X_test_user_movie_pairs, 'DecisionTreeMF')
+    # print('Submission file "{}" successfully written'.format(fname))
 
-    return accuracy
 
 if __name__ == "__main__":
-    # Parameters
-    cv_val = 10
-
-    optimal_depth, MSE = compute_cross_val(cv_val)
-    print("The optimal depth is {}".format(optimal_depth))
-
-    accuracy = compute_accuracy(optimal_depth)
-    print("The optimal accuracy for depth {} is {}".format(optimal_depth, accuracy))
+    
+    decision_tree()
