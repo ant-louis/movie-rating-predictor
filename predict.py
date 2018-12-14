@@ -11,7 +11,7 @@ R = np.array([
 ])
 
 
-df = pd.read_csv("Data/data_test.csv")
+df = pd.read_csv('output_list.txt', sep=" ", header=None)
 
 users = df['user_id'].values
 movies = df['movie_id'].values
