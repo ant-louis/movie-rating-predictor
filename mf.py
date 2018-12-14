@@ -58,12 +58,9 @@ class MF():
         xs, ys = self.R.nonzero()
         predicted = self.full_matrix()
         error = 0
-        i = 0
         for x, y in zip(xs, ys):
             error += pow(self.R[x, y] - predicted[x, y], 2)
-            i += 1
-        
-        return error/i
+        return np.sqrt(error)
 
     def sgd(self):
         """
