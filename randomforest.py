@@ -31,20 +31,21 @@ def parameter_tuning(grid):
 
 
     #-------------------------------------MATRICES --------------------------------------------------------------------------
-    training_user_movie_pairs_features = base.load_from_csv(os.path.join(prefix,
-                                                           'data_train.csv'))
+    training_user_movie_pairs_features = pd.read_csv(os.path.join(prefix,
+                                                           'train_user_movie_merge.csv'))
     training_labels = base.load_from_csv(os.path.join(prefix, 'output_train.csv'))
 
     X_ls, X_ts, y_ls, y_ts = train_test_split(training_user_movie_pairs_features, training_labels, test_size=0.2, random_state=42)
 
-
-    user_movie_rating_triplets_train = np.hstack((X_ls,
+    user_movie_rating_triplets_train = np.hstack((X_ls[['user_id','movie_id']].values,
                                             y_ls.reshape((-1, 1))))
-    user_movie_rating_triplets_test = np.hstack((X_ts,
+    user_movie_rating_triplets_test = np.hstack((X_ts[['user_id','movie_id']].values,
                                             y_ts.reshape((-1, 1))))
+
     # Build the learning matrixtraining_with_more_features
     rating_matrix_train = base.build_rating_matrix(user_movie_rating_triplets_train)
     rating_matrix_test = base.build_rating_matrix(user_movie_rating_triplets_test)
+
     X_train = base.create_learning_matrices(rating_matrix_train, X_ls)
     X_test = base.create_learning_matrices(rating_matrix_test, X_ts)
 
