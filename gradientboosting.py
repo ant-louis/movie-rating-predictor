@@ -1,23 +1,8 @@
-
-# ! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import os
-import time
-import datetime
-from contextlib import contextmanager
-import random
-import pandas as pd
 import numpy as np
-from scipy import sparse
-
+import pandas as pd
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.metrics import mean_squared_error
-
-from sklearn.model_selection import train_test_split
-from matplotlib import pyplot as plt
-
-#Import own script
 import base_methods as base
 
 
@@ -42,24 +27,22 @@ def gradient_boosting():
         print("Training with gradient boosting...")
         model.fit(X_train, y_train)
 
-    #Check for overfitting
-    y_pred_train = model.predict(X_train)
-    MSE_train = mean_squared_error(y_train, y_pred_train)
-    print("MSE for gradient boosting: {}".format(MSE_train))
-
     # -----------------------Submission: Running model on provided test_set---------------------------- #
-    # #Load test data
-    # X_test = base.load_from_csv(os.path.join(prefix, 'test_user_movie_merge.csv'))
-    # X_test_user_movie_pairs = base.load_from_csv(os.path.join(prefix, 'data_test.csv'))
+    #Load test data
+    test_user_movie_pairs = base.load_from_csv(os.path.join(prefix, 'data_test.csv'))
 
-    # #Predict
-    # print("Predicting...")
-    # y_pred = model.predict(X_test)
+    # Build the prediction matrix
+    X_ts = base.create_learning_matrices(R.values, test_user_movie_pairs)
 
-    # fname = base.make_submission(y_pred, X_test_user_movie_pairs, 'GradientBoostingMF')
-    # print('Submission file "{}" successfully written'.format(fname))
+    # Predict
+    y_pred = model.predict(X_ts)
+    for i,y in enumerate(y_pred,0):
+        if y_pred[i] > 5.00:
+            y_pred[i] = 5.00
+    
+    fname = base.make_submission(y_pred, test_user_movie_pairs, 'MF_withGradientBoosting')
+    print('Submission file "{}" successfully written'.format(fname))
 
 if __name__ == '__main__':
-
     gradient_boosting()
     
