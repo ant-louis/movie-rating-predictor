@@ -61,7 +61,7 @@ def neuralnet():
 
     # ------------------------------- Learning ------------------------------- #
     # Load training data
-    R = pd.read_csv('predicted_matrix.txt', sep=" ", header=None)
+    R = pd.read_csv('predicted_matrixK20.txt', sep=" ", header=None)
     user_movie_pairs = base.load_from_csv(os.path.join(prefix, 'data_train.csv'))
     training_labels = base.load_from_csv(os.path.join(prefix, 'output_train.csv'))
 
@@ -74,12 +74,13 @@ def neuralnet():
         print("Training...neural net")
         model = MLPRegressor(hidden_layer_sizes = (100,),
                             solver='lbfgs',
-                            
+                            activation = 'logistic',
                             alpha=1e-5,
                             learning_rate_init = 0.0005,
                             learning_rate = 'constant',
                             random_state = 9,
-                            early_stopping = True)
+                            early_stopping = True,
+                            max_iter=1000)
         model.fit(X_train, y_train)
 
     # Predict
@@ -99,6 +100,9 @@ def neuralnet():
 
     # Predict
     y_pred = model.predict(X_ts)
+    for i,y in enumerate(y_pred,0):
+        if y_pred[i] > 5.00:
+            y_pred[i] = 5.00
 
     fname = base.make_submission(y_pred, test_user_movie_pairs, 'MF_withMLP')
     print('Submission file "{}" successfully written'.format(fname))
