@@ -102,34 +102,14 @@ def neuralnet():
     prefix = 'Data/'
 
     # ------------------------------- Learning ------------------------------- #
-    # Load training data
-
-    ##-------------------------------------MATRIX --------------------------------------------------------------------
-
-    training_user_movie_pairs = base.load_from_csv(os.path.join(prefix,
-                                                           'data_train.csv'))
+ 
+    R = pd.read_csv('predicted_matrix.txt', sep=" ", header=None)
+    
+    user_movie_pairs = base.load_from_csv(os.path.join(prefix, 'data_train.csv'))
     training_labels = base.load_from_csv(os.path.join(prefix, 'output_train.csv'))
 
-    X_ls, X_ts, y_ls, y_ts = train_test_split(training_user_movie_pairs, training_labels, test_size=0.2, random_state=42)
-
-
-    user_movie_rating_triplets_training = np.hstack((X_ls,
-                                            y_ls.reshape((-1, 1))))
-
-    # Build the training learning matrix
-    rating_matrix_training = base.build_rating_matrix(user_movie_rating_triplets_training)
-    X_train = base.create_learning_matrices(rating_matrix_training, X_ls)
-
-    user_movie_rating_triplets_testing= np.hstack((X_ts,
-                                            y_ts.reshape((-1, 1))))
-
-    # Build the testing learning matrix
-    rating_matrix_testing = base.build_rating_matrix(user_movie_rating_triplets_testing)
-    X_test = base.create_learning_matrices(rating_matrix_testing, X_ts)
-
-    # Build the model
-    y_train = y_ls
-    y_test = y_ts
+    X_train = base.create_learning_matrices(R.values, user_movie_pairs)
+    y_train = training_labels
 
     # #-------------------------------------ALL FEATURES --------------------------------------------------------------------
     # training_with_more_features = base.load_from_csv(os.path.join(prefix,
@@ -141,6 +121,7 @@ def neuralnet():
     # #----------------------------------------------------------------------------------------------------------------------
 
     model= None
+    print("Training")
     with base.measure_time('Training...neural net'):
         model = MLPRegressor(hidden_layer_sizes = (400,), 
                             activation = 'logistic', 
@@ -154,12 +135,9 @@ def neuralnet():
     # Predict
     print("Predicting...")
 
-    y_pred_test = model.predict(X_test)
     y_pred_train = model.predict(X_train)
-    MSE_test = mean_squared_error(y_test, y_pred_test)
     MSE_train = mean_squared_error(y_train, y_pred_train)
 
-    print("Testing set MSE : {}".format(MSE_test))
     print("Training set MSE : {}".format(MSE_train))
 
 if __name__ == '__main__':

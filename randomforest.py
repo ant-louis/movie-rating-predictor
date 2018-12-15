@@ -133,33 +133,41 @@ def randomforest():
 
     # -----------------------Submission: Running model on provided test_set---------------------------- #
 
-    # #Load test data
+    #Load test data
     # X_test = base.load_from_csv(os.path.join(prefix, 'test_user_movie_merge.csv'))
-    # X_test_user_movie_pairs = base.load_from_csv(os.path.join(prefix, 'data_test.csv'))
+    test_user_movie_pairs = base.load_from_csv(os.path.join(prefix, 'data_test.csv'))
 
-    # #Predict
-    # print("Predicting...")
-    # y_pred = model.predict(X_test)
+    #Predict
+    print("Predicting...")
+    # Build the prediction matrix
+    X_ts = base.create_learning_matrices(R.values, test_user_movie_pairs)
 
-    # fname = base.make_submission(y_pred, X_test_user_movie_pairs, 'RandomForr_tuned')
-    # print('Submission file "{}" successfully written'.format(fname))
+    # Predict
+    y_pred = model.predict(X_ts)
+
+    for i,y in enumerate(y_pred,0):
+        if y_pred[i] > 5.00:
+            y_pred[i] = 5.00
+    
+    fname = base.make_submission(y_pred, test_user_movie_pairs, 'MF_withRandomForest')
+    print('Submission file "{}" successfully written'.format(fname))
 
 if __name__ == '__main__':
 
 
-    # Number of features to consider at every split
-    n_estimators = list(range(36,44,2))
-    max_depth= list(range(9,12,1))
-    # Minimum number of samples required to split a node
-    min_samples_split = [5,6,7]
-    # Minimum number of samples required at each leaf node
-    min_samples_leaf = [4,8,10]
-    # Create the random grid
-    deterministic_grid = {'n_estimators' : n_estimators,
-                        'max_depth' : max_depth,
-                        'min_samples_split': min_samples_split,
-                        'min_samples_leaf': min_samples_leaf
-                        }
+    # # Number of features to consider at every split
+    # n_estimators = list(range(36,44,2))
+    # max_depth= list(range(9,12,1))
+    # # Minimum number of samples required to split a node
+    # min_samples_split = [5,6,7]
+    # # Minimum number of samples required at each leaf node
+    # min_samples_leaf = [4,8,10]
+    # # Create the random grid
+    # deterministic_grid = {'n_estimators' : n_estimators,
+    #                     'max_depth' : max_depth,
+    #                     'min_samples_split': min_samples_split,
+    #                     'min_samples_leaf': min_samples_leaf
+    #                     }
 
     # parameter_tuning(deterministic_grid)
 
