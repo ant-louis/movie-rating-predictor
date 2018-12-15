@@ -40,27 +40,11 @@ class MF():
         ]
 
         # Perform stochastic gradient descent for number of iterations
-        training_process = []
         for i in range(self.iterations):
             np.random.shuffle(self.samples)
             self.sgd()
-            mse = self.mse()
-            training_process.append((i, mse))
-            if (i+1) % 10 == 0:
-                print("Iteration: %d ; error = %.4f" % (i+1, mse))
 
-        return training_process
-
-    def mse(self):
-        """
-        A function to compute the total mean square error
-        """
-        xs, ys = self.R.nonzero()
-        predicted = self.full_matrix()
-        error = 0
-        for x, y in zip(xs, ys):
-            error += pow(self.R[x, y] - predicted[x, y], 2)
-        return np.sqrt(error)
+        return self
 
     def sgd(self):
         """
