@@ -21,7 +21,7 @@ def knr():
     y_train = training_labels
 
     MSE = []
-    neighbors = list(range(1,200, 5))
+    neighbors = list(range(1,20, 1))
     for neighbor in neighbors:
         with base.measure_time('Training'):
             print('Training KNR with a n_neighbors of {}...'.format(neighbor))
@@ -30,6 +30,7 @@ def knr():
 
             y_pred_train = model.predict(X_train)
             MSE_train = mean_squared_error(y_train, y_pred_train)
+            print("Neighbor: {} - MSE: {}".format(neighbor, MSE_train))
             MSE.append(MSE_train)
             
     index = MSE.index(min(MSE))
@@ -51,7 +52,6 @@ def knr():
     
     # fname = base.make_submission(y_pred, test_user_movie_pairs, 'MF_withKNR')
     # print('Submission file "{}" successfully written'.format(fname))
-
 
 if __name__ == "__main__":
     knr()

@@ -42,5 +42,4 @@ def linearregression():
     print('Submission file "{}" successfully written'.format(fname))
 
 if __name__ == '__main__':
-
     linearregression()

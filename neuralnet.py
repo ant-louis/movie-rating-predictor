@@ -72,12 +72,14 @@ def neuralnet():
     y_train = training_labels
     with base.measure_time('Training'):
         print("Training...neural net")
-        model = MLPRegressor(hidden_layer_sizes = (100,), 
-                            activation = 'logistic', 
+        model = MLPRegressor(hidden_layer_sizes = (100,),
+                            solver='lbfgs',
+                            
+                            alpha=1e-5,
                             learning_rate_init = 0.0005,
                             learning_rate = 'constant',
-                            early_stopping = True,
-                            verbose = 2)
+                            random_state = 9,
+                            early_stopping = True)
         model.fit(X_train, y_train)
 
     # Predict
@@ -124,6 +126,6 @@ if __name__ == '__main__':
                         'early_stopping': early_stopping
                         }
 
-    parameter_tuning(deterministic_grid)
+    #parameter_tuning(deterministic_grid)
 
-    #neuralnet()
+    neuralnet()

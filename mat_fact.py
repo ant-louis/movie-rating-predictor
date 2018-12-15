@@ -22,7 +22,7 @@ def matrix_factorization():
     # Build the model
     model = MF(rating_matrix, K=30, alpha=1e-5, beta=0.02, iterations=2000)
     with base.measure_time('Training'):
-        print('Training...')
+        print('Training matrix factorization...')
         model.train()
     
     # Save the predicted matrix
@@ -47,7 +47,5 @@ def matrix_factorization():
     fname = base.make_submission(ratings, df.values.squeeze(), 'MatrixFactorization')
     print('Submission file "{}" successfully written'.format(fname))
 
-
 if __name__ == '__main__':
-
     matrix_factorization()

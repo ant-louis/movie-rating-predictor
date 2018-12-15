@@ -11,7 +11,6 @@ data$rating <- as.numeric(as.character(data$rating))
 # Statistical summaries of the variables
 summary(data)
 
-
 boxplot(rating ~ gender)
 boxplot(rating ~ occupation,las=2)
 
