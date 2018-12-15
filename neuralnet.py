@@ -72,7 +72,7 @@ def neuralnet():
     y_train = training_labels
     with base.measure_time('Training'):
         print("Training...neural net")
-        model = MLPRegressor(hidden_layer_sizes = (100,),
+        model = MLPRegressor(hidden_layer_sizes = (50,),
                             solver='lbfgs',
                             activation = 'logistic',
                             alpha=1e-5,
@@ -80,7 +80,7 @@ def neuralnet():
                             learning_rate = 'constant',
                             random_state = 9,
                             early_stopping = True,
-                            max_iter=1000)
+                            max_iter=10000)
         model.fit(X_train, y_train)
 
     # Predict
@@ -103,6 +103,8 @@ def neuralnet():
     for i,y in enumerate(y_pred,0):
         if y_pred[i] > 5.00:
             y_pred[i] = 5.00
+        if y_pred[i] < 0.00:
+            y_pred[i] = 0.00
 
     fname = base.make_submission(y_pred, test_user_movie_pairs, 'MF_withMLP')
     print('Submission file "{}" successfully written'.format(fname))
