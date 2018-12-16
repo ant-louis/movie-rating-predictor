@@ -27,6 +27,7 @@ def tuning():
     learning_rate = ['constant', 'adaptive']
     learning_rate_init = [0.0005,0.001,0.003]
     early_stopping = [True]
+    
     grid = {'hidden_layer_sizes' : hidden_layer_sizes,
                         'activation' : activation,
                         'alpha':alpha,
@@ -35,25 +36,10 @@ def tuning():
                         'early_stopping': early_stopping
                         }
 
-    prefix = 'Data/'
-
-    # Load training data
-    X_train = base.load_from_csv(os.path.join(prefix, 'train_user_movie_merge.csv'))
-    y_train = base.load_from_csv(os.path.join(prefix, 'output_train.csv'))
-
-    # Tuning
     model = MLPRegressor(random_state = 42)
-    print('Created the model')
-    rf_determ = RandomizedSearchCV(estimator =model, 
-                                    param_distributions = grid, 
-                                    cv = 2,
-                                    verbose=2, 
-                                    n_jobs = -1  
-                                    )
-    print('Starting search...')
-    rf_determ.fit(X_train, y_train)
+    optimal_parameters = base.hyper_tuning(model, grid)
+    print('Optimal parameters: ', optimal_parameters)
 
-    print('Optimal parameters: ', rf_determ.best_params_)
 
 # ------------------------------- Learning ------------------------------- #
 
@@ -76,16 +62,27 @@ def neuralNetNeurons():
             print("NNModel with {} neurons already trained. Import filename {}".format(nb_neurons,filename))
             accuracies.append(joblib.load(filename)[1])
         else:
-            model = MLPRegressor(hidden_layer_sizes = (nb_neurons,), activation = 'logistic', learning_rate = 'adaptive', learning_rate_init = 0.003, alpha = 1e-05, early_stopping = True, random_state = 42)
-            cv_model = MLPRegressor(hidden_layer_sizes = (nb_neurons,), activation = 'logistic', learning_rate = 'adaptive', learning_rate_init = 0.003, alpha = 1e-05, early_stopping = True, random_state = 42)
-
+            model = MLPRegressor(hidden_layer_sizes = (nb_neurons,), 
+                                activation = 'logistic', 
+                                learning_rate = 'adaptive', 
+                                learning_rate_init = 0.003, 
+                                alpha = 1e-05, 
+                                early_stopping = True, 
+                                random_state = 42)
+            cv_model = MLPRegressor(hidden_layer_sizes = (nb_neurons,)
+                                activation = 'logistic', 
+                                learning_rate = 'adaptive', 
+                                learning_rate_init = 0.003, 
+                                alpha = 1e-05, 
+                                early_stopping = True, 
+                                random_state = 42)               
             # Training the model on the whole training data
             with base.measure_time('Training'):
                 print('Training neural net...')
                 model.fit(X_train, y_train)
 
             # Performing cross validation
-            with measure_time('Cross validation'):
+            with base.measure_time('Cross validation'):
                 print('Cross validation...')
                 cv_score = base.cross_validation(cv_model, X_train, y_train, 5)
                 accuracies.append(cv_score)
@@ -125,16 +122,25 @@ def neuralNetLayers():
             print("NNModel with {} layers already trained. Import filename {}".format(len(layer),filename))
             accuracies.append(joblib.load(filename)[1])
         else:
-            model = MLPRegressor(hidden_layer_sizes = layer, activation = 'logistic', learning_rate = 'adaptive', learning_rate_init = 0.003, alpha = 1e-05, early_stopping = True, random_state = 42)
-            cv_model = MLPRegressor(hidden_layer_sizes = layer, activation = 'logistic', learning_rate = 'adaptive', learning_rate_init = 0.003, alpha = 1e-05, early_stopping = True, random_state = 42)
-
+            model = MLPRegressor(hidden_layer_sizes = layer, 
+                                activation = 'logistic', learning_rate = 'adaptive', 
+                                learning_rate_init = 0.003, 
+                                alpha = 1e-05, 
+                                early_stopping = True, 
+                                random_state = 42)
+            cv_model = MLPRegressor(hidden_layer_sizes = layer, 
+                                activation = 'logistic', learning_rate = 'adaptive', 
+                                learning_rate_init = 0.003, 
+                                alpha = 1e-05, 
+                                early_stopping = True, 
+                                random_state = 42)
             # Training the model on the whole training data
-            with measure_time('Training'):
+            with base.measure_time('Training'):
                 print('Training neural net...')
                 model.fit(X_train, y_train)
 
             # Performing cross validation
-            with measure_time('Cross validation'):
+            with base.measure_time('Cross validation'):
                 print('Cross validation...')
                 cv_score = base.cross_validation(cv_model, X_train, y_train, 5)
                 accuracies.append(cv_score)
@@ -154,24 +160,6 @@ def neuralNetLayers():
 
 # -----------------------Submission: Running model on provided test_set---------------------------- #
 
-def submit():
-    prefix = 'Data/'
-
-    # Load test data
-    X_test = base.load_from_csv(os.path.join(prefix, 'test_user_movie_merge.csv'))
-    test_user_movie_pairs = base.load_from_csv(os.path.join(prefix, 'data_test.csv'))
-
-    # Loading the chosen estimator
-    model = joblib.load('NNModel_neurons_320.pkl')[0]
-    y_pred = model.predict(X_test)
-
-    for i in range(len(y_pred)):
-        if y_pred[i] > 5:
-            y_pred[i] = 5
-
-    fname = base.make_submission(y_pred, test_user_movie_pairs, 'MLP')
-    print('Submission file "{}" successfully written'.format(fname))
-
 if __name__ == '__main__':
     
-    submit()
+    base.submit("NNModel_neurons_320.pkl","MLP")

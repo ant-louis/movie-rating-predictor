@@ -6,6 +6,8 @@ import pandas as pd
 import numpy as np
 from scipy import sparse
 from sklearn.model_selection import cross_validate
+from sklearn.model_selection import RandomizedSearchCV
+from sklearn.externals import joblib
 
 @contextmanager
 def measure_time(label):
@@ -198,7 +200,7 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
 
 def cross_validation(model, X_cv, y_cv, K):
 	"""
-	Performs cross validation for a given model
+	Perform cross validation for a given model
 
 	Parameters
     ----------
@@ -220,6 +222,40 @@ def cross_validation(model, X_cv, y_cv, K):
 	mean_MSE = abs(np.mean(scores['test_score']))
 
 	return mean_MSE
+
+def hyper_tuning(model, grid):
+    """
+    Tune hyperparameters of a model
+
+    Parameters:
+    -----------
+    model :
+        Estimator on which to tune the hyperparameters
+    grid :
+        Dictionnary with keys being the name of the parameter
+        and having as values the list of values of the parameter
+        to try
+    Returns:
+    -------
+
+    Best combination of hyperparameters for the given model
+    """
+    prefix = 'Data/'
+
+    # Load training data
+    X_train = load_from_csv(os.path.join(prefix, 'train_user_movie_merge.csv'))
+    y_train = load_from_csv(os.path.join(prefix, 'output_train.csv'))
+
+    rf_random = RandomizedSearchCV(estimator = model, 
+                                    param_distributions = grid, 
+                                    cv = 3,
+                                    verbose=2, 
+                                    n_jobs = -1  
+                                    )
+    print('Starting search...')
+    rf_random.fit(X_train, y_train)
+
+    return rf_random.best_params_
 
 
 def make_submission(y_predict, user_movie_ids, file_name='submission',
@@ -265,3 +301,37 @@ def make_submission(y_predict, user_movie_ids, file_name='submission',
             line = '{:d}_{:d},{}\n'.format(user_id, movie_id, prediction)
             handle.write(line)
     return file_name
+
+
+
+def submit(estimator_file, submission_file):
+    """
+    Predict the model on the provided test set and
+    create a submission file
+
+    Parameters
+    ----------
+    estimator_file : 
+        Name of the estimator to load from file
+    submission_file: 
+        Name to give to the submission file
+
+    """
+    prefix = 'Data/'
+
+    # Load test data
+    X_test = load_from_csv(os.path.join(prefix, 'test_user_movie_merge.csv'))
+    test_user_movie_pairs = load_from_csv(os.path.join(prefix, 'data_test.csv'))
+
+    # Loading the chosen estimator
+    model = joblib.load(estimator_file)[0]
+    y_pred = model.predict(X_test)
+
+    for i in range(len(y_pred)):
+        if y_pred[i] > 5:
+            y_pred[i] = 5
+        if y_pred[i] < 0:
+            y_pred[i] = 0
+
+    fname = make_submission(y_pred, test_user_movie_pairs, 'MLP')
+    print('Submission file "{}" successfully written'.format(fname))
