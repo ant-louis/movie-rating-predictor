@@ -304,7 +304,7 @@ def make_submission(y_predict, user_movie_ids, file_name='submission',
 
 
 
-def submit(estimator_file, submission_file):
+def submit_from_file(estimator_file, submission_file):
     """
     Predict the model on the provided test set and
     create a submission file
@@ -324,7 +324,7 @@ def submit(estimator_file, submission_file):
     test_user_movie_pairs = load_from_csv(os.path.join(prefix, 'data_test.csv'))
 
     # Loading the chosen estimator
-    model = joblib.load(estimator_file)[0]
+    model = joblib.load(estimator_file)
     y_pred = model.predict(X_test)
 
     for i in range(len(y_pred)):
@@ -333,5 +333,35 @@ def submit(estimator_file, submission_file):
         if y_pred[i] < 0:
             y_pred[i] = 0
 
-    fname = make_submission(y_pred, test_user_movie_pairs, 'MLP')
+    fname = make_submission(y_pred, test_user_movie_pairs, submission_file)
+    print('Submission file "{}" successfully written'.format(fname))
+
+def submit_from_model(model, submission_file):
+    """
+    Predict the model on the provided test set and
+    create a submission file
+
+    Parameters
+    ----------
+    model : 
+        Model to predict on
+    submission_file: 
+        Name to give to the submission file
+
+    """
+    prefix = 'Data/'
+
+    # Load test data
+    X_test = load_from_csv(os.path.join(prefix, 'test_user_movie_merge.csv'))
+    test_user_movie_pairs = load_from_csv(os.path.join(prefix, 'data_test.csv'))
+
+    y_pred = model.predict(X_test)
+
+    for i in range(len(y_pred)):
+        if y_pred[i] > 5:
+            y_pred[i] = 5
+        if y_pred[i] < 0:
+            y_pred[i] = 0
+
+    fname = make_submission(y_pred, test_user_movie_pairs, submission_file)
     print('Submission file "{}" successfully written'.format(fname))
