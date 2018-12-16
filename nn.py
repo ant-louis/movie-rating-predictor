@@ -162,4 +162,4 @@ def neuralNetLayers():
 
 if __name__ == '__main__':
     
-    base.submit("NNModel_neurons_320.pkl","MLP")
+    base.submit_from_file("NNModel_neurons_320.pkl","MLP")
