@@ -5,6 +5,7 @@ from contextlib import contextmanager
 import pandas as pd
 import numpy as np
 from scipy import sparse
+from sklearn.model_selection import cross_validate
 
 @contextmanager
 def measure_time(label):
@@ -194,6 +195,31 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
 
     X = np.hstack((user_features, movie_features))
     return X
+
+def cross_validation(model, X_cv, y_cv, K):
+	"""
+	Performs cross validation for a given model
+
+	Parameters
+    ----------
+    model: the model to cross validate
+    X_cv: array [nb_ratings, nb_features]
+		X_cv[r, f] is the feature f of a rating r given by a user to a movie
+    y_cv: array [nb_ratings]
+		y_cv[r] is the rating r given by a user to a movie
+    K: int
+    	the number of folds
+
+    Return
+    ------
+	mean_MSE: float
+		the mean of the mean squared error for a split
+	"""
+
+	scores = cross_validate(model, X_cv, y_cv, cv = K, scoring = 'neg_mean_squared_error', return_train_score = False, n_jobs = -1)
+	mean_MSE = abs(np.mean(scores['test_score']))
+
+	return mean_MSE
 
 
 def make_submission(y_predict, user_movie_ids, file_name='submission',
