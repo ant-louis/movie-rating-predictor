@@ -188,11 +188,11 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
         The learning matrix in csr sparse format
     """
     # Feature for users
-    # rating_matrix = rating_matrix.tocsr()
+    rating_matrix = rating_matrix.tocsr()
 
     user_features = rating_matrix[user_movie_pairs[:, 0]]
     # Features for movies
-    # rating_matrix = rating_matrix.tocsc()
+    rating_matrix = rating_matrix.tocsc()
     movie_features = rating_matrix[:, user_movie_pairs[:, 1]].transpose()
 
     X = np.hstack((user_features, movie_features))
@@ -352,7 +352,7 @@ def submit_from_model(model, submission_file):
     prefix = 'Data/'
 
     # Load test data
-    X_test = load_from_csv(os.path.join(prefix, 'test_user_movie_merge.csv'))
+    X_test = load_from_csv(os.path.join(prefix, 'data_train.csv'))
     test_user_movie_pairs = load_from_csv(os.path.join(prefix, 'data_test.csv'))
 
     y_pred = model.predict(X_test)

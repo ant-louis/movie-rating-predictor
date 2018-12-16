@@ -48,7 +48,7 @@ def neuralNetNeurons():
     prefix = 'Data/'
 
     # Load training data
-    X_train = base.load_from_csv(os.path.join(prefix, 'train_user_movie_merge.csv'))
+    X_train = base.load_from_csv(os.path.join(prefix, 'data_train.csv'))
     y_train = base.load_from_csv(os.path.join(prefix, 'output_train.csv'))
 
     nb_neurons_list = range(20, 500, 20)
@@ -105,7 +105,7 @@ def neuralNetLayers():
     prefix = 'Data/'
 
     # Load training data
-    X_train = base.load_from_csv(os.path.join(prefix, 'train_user_movie_merge.csv'))
+    X_train = base.load_from_csv(os.path.join(prefix, 'data_train.csv'))
     y_train = base.load_from_csv(os.path.join(prefix, 'output_train.csv'))
 
     layers = []
