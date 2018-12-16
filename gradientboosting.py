@@ -6,6 +6,25 @@ from sklearn.metrics import mean_squared_error
 import base_methods as base
 
 
+# ------------------------------- Hyperparameters tuning ------------------------------- #
+def tuning():
+    # Setting the range of parameters
+    max_depth = list(range(1,10))
+                        
+    min_samples_split = [1,2,5]
+    learning_rate = [0.01,0.05, 0.1, 0.2]
+    n_estimators = [30, 100, 200]
+    
+    grid = {'max_depth' : max_depth,
+                        'min_samples_split' : min_samples_split,
+                        'learning_rate':learning_rate,
+                        'n_estimators':n_estimators,
+                        }
+
+    model = GradientBoostingRegressor(random_state = 42)
+    optimal_parameters = base.hyper_tuning(model, grid)
+    print('Optimal parameters: ', optimal_parameters)
+
 def gradient_boosting():
     prefix = 'Data/'
 
@@ -40,9 +59,9 @@ def gradient_boosting():
         if y_pred[i] > 5.00:
             y_pred[i] = 5.00
     
-    fname = base.make_submission(y_pred, test_user_movie_pairs, 'MF_withGradientBoosting')
+    fname = base.make_submission(y_pred, test_user_movie_pairs, '')
     print('Submission file "{}" successfully written'.format(fname))
-
+    base.submit_from_file(estimator_file, "MF_withGradientBoosting")
 if __name__ == '__main__':
     gradient_boosting()
     
