@@ -30,18 +30,8 @@ def adaboost():
         model.fit(X_train, y_train)
 
     # -----------------------Submission: Running model on provided test_set---------------------------- #
-    #Load test data
-    test_user_movie_pairs = base.load_from_csv(os.path.join(prefix, 'data_test.csv'))
 
-    # Build the prediction matrix
-    X_ts = base.create_learning_matrices(R.values, test_user_movie_pairs)
-
-    # Predict
-    y_pred = model.predict(X_ts)
-
-    fname = base.make_submission(y_pred, test_user_movie_pairs, 'MF_withAdaboost')
-    print('Submission file "{}" successfully written'.format(fname))
-
+    base.submit_from_model(model,"MF_withAdaboost")
 if __name__ == '__main__':
     adaboost()
     
