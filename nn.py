@@ -65,7 +65,7 @@ def neuralNetNeurons():
     X_train = base.load_from_csv(os.path.join(prefix, 'train_user_movie_merge.csv'))
     y_train = base.load_from_csv(os.path.join(prefix, 'output_train.csv'))
 
-    nb_neurons_list = range(300, 340, 20)
+    nb_neurons_list = range(20, 500, 20)
 
     accuracies = []
     for nb_neurons in nb_neurons_list:
