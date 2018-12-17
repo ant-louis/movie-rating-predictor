@@ -19,8 +19,7 @@ def tuning():
                           (50,),
                           (100,),
                           (200,),
-                          (500,)
-                        ]
+                          (500,)]
                         
     activation = ['logistic','tanh','relu']
     alpha = [1e-5]
@@ -69,7 +68,7 @@ def neuralNetNeurons():
                                 alpha = 1e-05, 
                                 early_stopping = True, 
                                 random_state = 42)
-            cv_model = MLPRegressor(hidden_layer_sizes = (nb_neurons,)
+            cv_model = MLPRegressor(hidden_layer_sizes = (nb_neurons,),
                                 activation = 'logistic', 
                                 learning_rate = 'adaptive', 
                                 learning_rate_init = 0.003, 
@@ -161,5 +160,5 @@ def neuralNetLayers():
 # -----------------------Submission: Running model on provided test_set---------------------------- #
 
 if __name__ == '__main__':
-    
-    base.submit_from_file("NNModel_neurons_320.pkl","MLP")
+    tuning()
+    # base.submit_from_file("NNModel_neurons_320.pkl","MLP")

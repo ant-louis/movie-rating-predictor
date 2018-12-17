@@ -47,7 +47,7 @@ def randomforest():
     user_movie_pairs = base.load_from_csv(os.path.join(prefix, 'data_train.csv'))
     training_labels = base.load_from_csv(os.path.join(prefix, 'output_train.csv'))
 
-    X_train = base.create_learning_matrices(R.values, user_movie_pairs)
+    X_train = base.create_learning_matrices_features(R.values, user_movie_pairs)
     y_train = training_labels
 
     # Best estimator after hyperparameter tuning
@@ -73,6 +73,6 @@ def randomforest():
 
 if __name__ == '__main__':
 
-    # parameter_tuning()
+    parameter_tuning()
 
-    randomforest()
+    # randomforest()

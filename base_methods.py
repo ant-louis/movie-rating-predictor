@@ -188,11 +188,9 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
         The learning matrix in csr sparse format
     """
     # Feature for users
-    rating_matrix = rating_matrix.tocsr()
 
     user_features = rating_matrix[user_movie_pairs[:, 0]]
     # Features for movies
-    rating_matrix = rating_matrix.tocsc()
     movie_features = rating_matrix[:, user_movie_pairs[:, 1]].transpose()
 
     X = np.hstack((user_features, movie_features))

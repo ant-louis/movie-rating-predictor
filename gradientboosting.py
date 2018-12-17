@@ -49,5 +49,6 @@ def gradient_boosting():
     # -----------------------Submission: Running model on provided test_set---------------------------- #
     base.submit_from_model(model, "MF_withGradientBoosting")
 if __name__ == '__main__':
-    gradient_boosting()
+    # gradient_boosting()
+    tuning()
     

@@ -47,5 +47,6 @@ def adaboost():
 
     base.submit_from_model(model,"MF_withAdaboost")
 if __name__ == '__main__':
-    adaboost()
+    # adaboost()
+    tuning()
     

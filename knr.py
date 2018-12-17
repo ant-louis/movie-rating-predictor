@@ -16,7 +16,7 @@ def tuning():
                 'algorithm':algorithm,
                 }
 
-    model = KNeighborsRegressor(random_state = 42)
+    model = KNeighborsRegressor()
     optimal_parameters = base.hyper_tuning(model, grid)
     print('Optimal parameters: ', optimal_parameters)
 
@@ -57,4 +57,5 @@ def knr():
     base.submit_from_model(opt_model,"MF_withKNR")
 
 if __name__ == "__main__":
-    knr()
+    tuning()
+    # knr()
