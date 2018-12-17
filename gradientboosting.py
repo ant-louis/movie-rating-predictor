@@ -47,21 +47,7 @@ def gradient_boosting():
         model.fit(X_train, y_train)
 
     # -----------------------Submission: Running model on provided test_set---------------------------- #
-    #Load test data
-    test_user_movie_pairs = base.load_from_csv(os.path.join(prefix, 'data_test.csv'))
-
-    # Build the prediction matrix
-    X_ts = base.create_learning_matrices(R.values, test_user_movie_pairs)
-
-    # Predict
-    y_pred = model.predict(X_ts)
-    for i,y in enumerate(y_pred,0):
-        if y_pred[i] > 5.00:
-            y_pred[i] = 5.00
-    
-    fname = base.make_submission(y_pred, test_user_movie_pairs, '')
-    print('Submission file "{}" successfully written'.format(fname))
-    base.submit_from_file(estimator_file, "MF_withGradientBoosting")
+    base.submit_from_model(model, "MF_withGradientBoosting")
 if __name__ == '__main__':
     gradient_boosting()
     
