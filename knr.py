@@ -10,7 +10,7 @@ import base_methods as base
 # ------------------------------- Hyperparameters tuning ------------------------------- #
 def tuning():
     # Setting the range of parameters
-    n_neighbors = list(range(1,10;100))
+    n_neighbors = list(range(1,100,10))
     algorithm = ["auto", "ball_tree", "kd_tree", "brute"]
     grid =      {'n_neighbors' : n_neighbors,
                 'algorithm':algorithm,
