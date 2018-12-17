@@ -5,6 +5,21 @@ from sklearn.neighbors import KNeighborsRegressor
 from sklearn.metrics import mean_squared_error
 import base_methods as base
 
+
+
+# ------------------------------- Hyperparameters tuning ------------------------------- #
+def tuning():
+    # Setting the range of parameters
+    n_neighbors = list(range(1,10;100))
+    algorithm = ["auto", "ball_tree", "kd_tree", "brute"]
+    grid =      {'n_neighbors' : n_neighbors,
+                'algorithm':algorithm,
+                }
+
+    model = KNeighborsRegressor(random_state = 42)
+    optimal_parameters = base.hyper_tuning(model, grid)
+    print('Optimal parameters: ', optimal_parameters)
+
 def knr():
     prefix = 'Data/'
 
