@@ -2,3 +2,4 @@
 *.pkl
 *.zip
 __pycache__
+.vscode
