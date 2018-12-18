@@ -41,7 +41,7 @@ def gradient_boosting():
     y_train = training_labels
 
     # Best estimator after hyperparameter tuning
-    model = GradientBoostingRegressor(max_depth = 7)
+    model = GradientBoostingRegressor(max_depth = 4, min_samples_split=2, min_samples_leaf=0.0001)
     with base.measure_time('Training'):
         print("Training with gradient boosting...")
         model.fit(X_train, y_train)
