@@ -6,7 +6,6 @@ from sklearn.metrics import mean_squared_error
 import base_methods as base
 
 
-
 # ------------------------------- Hyperparameters tuning ------------------------------- #
 def tuning():
     # Setting the range of parameters

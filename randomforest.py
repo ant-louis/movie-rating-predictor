@@ -1,22 +1,17 @@
-# ! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import os
 import random
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import cross_val_score
 from sklearn.ensemble import RandomForestRegressor
-
-# from sklearn.metrics import accuracy_score
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.externals import joblib
 from matplotlib import pyplot as plt
-
-#Import own script
 import base_methods as base
 
+
+# ------------------------------- Hyperparameters tuning ------------------------------- #
 def parameter_tuning():
     
     # Number of features to consider at every split
@@ -42,6 +37,7 @@ def parameter_tuning():
 def randomforest():
     prefix = 'Data/'
 
+    # ------------------------------- Learning ------------------------------- #
     R = pd.read_csv('predicted_matrix.txt', sep=" ", header=None)
     
     user_movie_pairs = base.load_from_csv(os.path.join(prefix, 'data_train.csv'))
@@ -72,7 +68,5 @@ def randomforest():
     base.submit_from_model(model,"MF_withRandomForest")
 
 if __name__ == '__main__':
-
     parameter_tuning()
-
     # randomforest()

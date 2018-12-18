@@ -11,7 +11,6 @@ from matplotlib import pyplot as plt
 
 
 # ------------------------------- Hyperparameters tuning ------------------------------- #
-
 def tuning():
     # Setting the range of parameters
     hidden_layer_sizes = [
@@ -40,12 +39,11 @@ def tuning():
     print('Optimal parameters: ', optimal_parameters)
 
 
-# ------------------------------- Learning ------------------------------- #
-
 # Playing with the number of neurons
 def neuralNetNeurons():
     prefix = 'Data/'
 
+    # ------------------------------- Learning ------------------------------- #
     # Load training data
     X_train = base.load_from_csv(os.path.join(prefix, 'data_train.csv'))
     y_train = base.load_from_csv(os.path.join(prefix, 'output_train.csv'))
@@ -154,10 +152,8 @@ def neuralNetLayers():
     plt.plot(nb_layers, accuracies)
     plt.xlabel("number_of_layers")
     plt.ylabel("mean_squared_error")
-    
     plt.savefig("NNlayers.svg")
 
-# -----------------------Submission: Running model on provided test_set---------------------------- #
 
 if __name__ == '__main__':
     tuning()
