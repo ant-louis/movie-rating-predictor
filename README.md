@@ -10,4 +10,4 @@ To achieve this, we provide you with a set of 69,453 ratings given by 911 users 
 
 In addition, we also provide you some informations about the movies and some information about the users that you are free to use to improve your predictions.
 
-This dataset was constructed from the MovieLens dataset. Note that you cannot use any information outside of those provided.
+This dataset was constructed from the MovieLens dataset. Note that you cannot use any information outside of those provided. 
